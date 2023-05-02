@@ -145,8 +145,8 @@ HYDRA_FULL_ERROR=1 deepspeed --include localhost:0,1,2,3,4,5,6,7 trainer_base_ds
 
 | ​                          | LogiQA-v2​ |  C3-d​ |  C3-m​ |
 |----------------------------|--------|-------|--------|
-| llama-zh​                        	| 27.41​ | 43.02​ | 43.66​ |
-| llama-zh-instruct (9k steps)​            | **31.93**​ | **47.30**​ | **57.04**​ |
+| Panda-7B​                        	| 27.41​ | 43.02​ | 43.66​ |
+| Panda-Instruct-7B (9k steps)​            | **31.93**​ | **47.30**​ | **57.04**​ |
 | &nbsp;&nbsp;3k steps​                 	| 26.22​ | 39.05​ | 42.11​ |
 | &nbsp;&nbsp;6k steps​                  	| 30.30​ | 47.14​ | ​56.94​ |
 | belle-llama-ext-7b​         	| 26.41​ | 29.52​ | ​28.87​ |
