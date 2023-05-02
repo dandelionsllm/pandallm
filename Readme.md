@@ -118,8 +118,8 @@ conf/llama/zh/llama_13b_zh_instruct_v1_0_ds.yaml
 
 ##### 复杂推理
 
-[LogiQA-v2](https://github.com/csitfun/LogiQA2.0)
-[C3](https://dataset.org/c3/)
+- [LogiQA-v2](https://github.com/csitfun/LogiQA2.0)
+- [C3](https://dataset.org/c3/)
 
 ##### 其他能力
 
@@ -127,8 +127,8 @@ Pending
 
 ### Baseline
 
-[BELLE-LLaMA-Ext-7B](https://github.com/LianjiaTech/BELLE)
-[Linly-Chinese-LLaMA-7b-hf](https://github.com/CVI-SZU/Linly) (Huggingface weights of chat-based model in 7B size are not released now. Corresponding results will be updated after weights are released)
+- [BELLE-LLaMA-Ext-7B](https://github.com/LianjiaTech/BELLE)
+- [Linly-Chinese-LLaMA-7b-hf](https://github.com/CVI-SZU/Linly) (Huggingface weights of chat-based model in 7B size are not released now. Corresponding results will be updated after weights are released)
 
 ### Results
  
@@ -147,15 +147,6 @@ Pending
 
 Note 1: 由于模型对instruction的敏感性不同测评结果可能会有较大波动，测评结果仅供参考，并且可能无法完全反应模型之间的优劣。我们对于所有模型采用了最简单的instruction（可以在对应数据集配置文件中找到）。
 Note 2: Linly-Chinese可能可能在训练时用了额外的前缀（如assistant和user去区分对话中的角色），这可能会进一步提升性能，但我们目前没有测试。后续我们考虑收集多样化的instruction进行评测并汇报平均值。
-Note 3:
-
-
-<h2 id="usage">模型部署</h2>
-
-### CPU 部署
-
-### GPU/集群部署
-
 
 
 <h2 id="contribute">如何参与</h2>
