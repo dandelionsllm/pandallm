@@ -117,7 +117,7 @@ Command:
 ```
 HYDRA_FULL_ERROR=1 deepspeed --include localhost:0,1,2,3,4,5,6,7 trainer_base_ds_mul.py -cp conf/llama/zh -cn <file name of yaml config> 
 ```
-我们的训练使用了2 * 8 * A100 80G。如使用更少的显卡，请相应的调整`gradient_accumulation_steps`和`per_gpu_train_batch_size`。
+我们的训练使用了2 * 8 * A100 80G GPU。如使用更少的显卡，请相应的调整`gradient_accumulation_steps`和`per_gpu_train_batch_size`。
 
 <h2 id="evaluation">实验测评</h2>
 
@@ -132,7 +132,7 @@ HYDRA_FULL_ERROR=1 deepspeed --include localhost:0,1,2,3,4,5,6,7 trainer_base_ds
 
 ### 其他能力
 
-测试进行中
+测试进行中（欢迎数据集PR）
 
 
 ### Baseline
@@ -179,7 +179,7 @@ Note 2: Linly-Chinese可能可能在训练时用了额外的前缀（如assistan
 
 <h2 id="acknowledge"> 开发者</h2>
 
-Fangkai Jiao 
+Fangkai Jiao   
 Bosheng Ding  
 Tianze Luo  
 Zhanfeng Mo  
