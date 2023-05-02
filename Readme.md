@@ -80,10 +80,10 @@
 ### 中文 instruction-tuning
 
 - [维基百科(wiki2019zh)，100万个结构良好的中文词条](https://github.com/brightmart/nlp_chinese_corpus)  
-- 新闻语料(news2016zh)，250万篇新闻，含关键词、描述  
-- 百科问答(baike2018qa)，150万个带问题类型的问答  
-- 社区问答json版(webtext2019zh)，410万个高质量社区问答，适合训练超大模型  
-- 翻译语料(translation2019zh)，520万个中英文句子对  
+- [新闻语料(news2016zh)，250万篇新闻，含关键词、描述](https://github.com/brightmart/nlp_chinese_corpus)  
+- [百科问答(baike2018qa)，150万个带问题类型的问答](https://github.com/brightmart/nlp_chinese_corpus)  
+- [社区问答json版(webtext2019zh)，410万个高质量社区问答，适合训练超大模型](https://github.com/brightmart/nlp_chinese_corpus)  
+- [翻译语料(translation2019zh)，520万个中英文句子对](https://github.com/brightmart/nlp_chinese_corpus)  
 - [Chinese Open Instruction Generalist (COIG)](https://huggingface.co/datasets/BAAI/COIG) 
 
 **Notes**
