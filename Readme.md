@@ -63,7 +63,7 @@ Panda 大语言模型目前立足于 Llama-7B,  -13B，-30B, -65B 架构, 并在
 | Panda-7B        | 7B         | https://huggingface.co/chitanda/llama-panda-zh-7b-delta   |
 | Panda-Instruct-7B | 7B       | https://huggingface.co/chitanda/llama-panda-zh-coig-7b-delta |
 | Panda-13B       | 13B        |                       |
-| Flan-Lamma-7B   | 7B         |                                  |
+| Flan-LLaMA-7B   | 7B         |                                  |
 
 
 **Notes**: 
@@ -109,6 +109,12 @@ conf/llama/zh/llama_7b_zh_instruct_coig_sft_v1_0_ds.yaml
 # LLaMA-13b pretrain on general Chinese Corpus (Ongoing)
 conf/llama/zh/llama_13b_zh_instruct_v1_0_ds.yaml
 ```
+
+Command:
+```
+HYDRA_FULL_ERROR=1 deepspeed --include localhost:0,1,2,3,4,5,6,7 trainer_base_ds_mul.py -cp conf/llama/zh -cn <file name of yaml config> 
+```
+我们的训练使用了2 * 8 * A100 80G。如使用更少的显卡，请相应的调整`gradient_accumulation_steps`和`per_gpu_train_batch_size`。
 
 <h2 id="evaluation">实验测评</h2>
 
