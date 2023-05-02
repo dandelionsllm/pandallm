@@ -101,7 +101,7 @@ Deepspeed Zero-1 + Gradient Checkpointing
 
 对应模型的训练时超参数见：
 
-···
+
 ### LLaMA-7b pretrain on general Chinese Corpus
 
 conf/llama/zh/llama_7b_zh_instruct_v1_0_ds.yaml
@@ -113,7 +113,7 @@ conf/llama/zh/llama_7b_zh_instruct_coig_sft_v1_0_ds.yaml
 ### LLaMA-13b pretrain on general Chinese Corpus (Ongoing)
 
 conf/llama/zh/llama_13b_zh_instruct_v1_0_ds.yaml
-···
+
 
 <h2 id="evaluation">实验测评</h2>
 
