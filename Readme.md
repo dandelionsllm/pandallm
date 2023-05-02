@@ -37,7 +37,7 @@
 
 <h2 id="news">最近更新</h2>
 
-发布了大模型Panda 和 Flan-Lamma的technical report！
+发布了大模型 **Panda** 和 **Flan-Lamma** 的technical report！
 
 论文链接： 
 
