@@ -84,8 +84,6 @@ Chinese Open Instruction Generalist (COIG)
 Notes 1: 对于除维基百科和新闻语料外的其他语料，用Conditional Generation的方式优化，即instruction部分与输入部分不计算损失，只计算输出部分的损失。除COIG外的语料中的instruction为固定模板。
 Notes 2: 一开始我们将以上所有语料混合在一起进行训练，但发现最终的模型在instruction following方面的能力并不好，因此我们决定单独在COIG数据集上进行指令微调，并得到最终模型。推测原因可能是COIG在整体训练数据中的占比过小，可选的解决方案是对COIG加大采样的概率。
 
-### 英文预训练
-
 ### 英文 instruction-tuning
 
 为了提升模型的基础能力，我们选择使用FLAN Collection进行训练。由于FLAN collection语料规模过于庞大，我们按比例抽取了7M的语料用于训练，且最终性能仍远落后于FLAN-T5-3B，因此目前我们决定暂时停止该方向的训练，并思考其他可能的构建较小的同时具有较强基础能力的语言模型的方向。
