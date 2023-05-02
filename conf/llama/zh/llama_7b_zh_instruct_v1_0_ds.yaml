@@ -1,0 +1,212 @@
+hydra:
+  run:
+    dir: ./
+
+
+aws_output_bucket:
+data_dir:
+
+train_file: /opt/ml/input/data/train
+dev_file:
+test_file:
+
+# Model
+model:
+  _target_: models.llama.LlamaForConditionalGeneration.from_pretrained
+  vocab_size: 32001
+  pad_token_id: 32000
+  use_peft: False
+  gradient_checkpointing: True
+#  lora_config:
+#    _target_: models.llama.LoraConfig
+#    task_type: CAUSAL_LM
+#    inference_mode: False
+#    target_modules: ["q_proj", "v_proj"]
+#    r: 8
+#    lora_alpha: 16
+#    lora_dropout: 0.05
+
+#model_eval:
+#  _target_: models.llama.LlamaForConditionalGenerationFlan.from_pretrained_peft_eval
+#  base_model_name_or_path: ${model_name_or_path}
+
+
+# Data loading
+read_tensor:
+  _target_: data.collators.zh_instruct.TextDatasetUnify
+
+
+extended_vocab:
+
+# Data collator
+collator:
+  _target_: data.collators.flan.FlanCollatorOverCollator
+  collator:
+  max_seq_length: 2048
+  tokenizer: ${model_name_or_path}
+  decoder_only: True
+
+# Dataloader
+num_workers: 4
+prefetch_factor: 2
+
+do_preprocess: False
+
+# Wiki path pretrain v8.2
+model_name_or_path: /tmp/llama-7b
+pretrain:
+
+exp_name: llama.7b.zh_instruct.10M.v1.0.seq1024.w8.adamw.NA100.0421.ds
+exp_notes:
+output_dir: experiments/${exp_name}
+resume:
+
+do_train: True
+evaluate_during_training: False
+
+do_eval: False
+eval_sub_path: checkpoint-*
+
+# Training hyper-parameters
+per_gpu_train_batch_size: 4
+per_gpu_eval_batch_size: 4
+learning_rate: 1e-5
+#learning_rate: 2e-3
+gradient_accumulation_steps: 128
+weight_decay: 0.00
+adam_epsilon: 1e-6
+adam_betas: "(0.9, 0.99)"
+max_grad_norm: 5.0
+num_train_epochs: 1
+#total_dataset_len: 760000000
+total_dataset_len: 14812376
+max_steps: 0
+warmup_proportion: 0.01
+warmup_steps: 0
+
+# Optimizer
+optimizer:
+use_nvlamb:
+bit_training:
+
+
+logging_steps: 1
+#save_best: True
+save_best: False
+save_steps: 250
+eval_steps: 250
+ddp_eval: True
+no_cuda: False
+seed: 42
+local_rank: -1
+fp16: True
+fp16_opt_level: O1
+fp16_bfloat16: True
+
+# Prediction config
+prediction_cfg:
+  metric: "acc"
+  measure: 1
+  best_checkpoint:
+  best_result:
+eval_forward_fn:
+  _target_: general_util.evaluator.DiscriminatorForwardFn
+post_process:
+
+#dist_init:
+#  _target_: general_util.dist_utils.setup_slurm_distributed
+
+
+# fairscale.FullyShardedDP
+fairscale_config:
+#  _target_: general_util.fsdp_utils.recursive_initialize
+  _target_: general_util.fsdp_utils.default_initialize
+#  _target_: general_util.fsdp_utils.default_initialize_v2
+#  _target_: general_util.torch_fsdp_utils.torch_fsdp_transformer_init
+#  _target_: general_util.torch_fsdp_utils.torch_fsdp_auto_wrap
+  fp16: ${fp16}
+  move_grads_to_cpu: False
+  move_params_to_cpu: False
+  flatten_parameters: False
+#  fp16_bfloat16: ${fp16_bfloat16}
+#  cpu_offload: True
+#  disable_reshard_on_root: False
+
+
+# Lightseq config
+with_lightseq: False
+
+# Deepspeed config
+ds_cfg:
+  train_micro_batch_size_per_gpu: ${per_gpu_train_batch_size}
+  gradient_accumulation_steps: ${gradient_accumulation_steps}
+  optimizer:
+    type: AdamW
+    params:
+      lr: ${learning_rate}
+      betas: [0.9, 0.99]
+      eps: ${adam_epsilon}
+      weight_decay: ${weight_decay}
+  scheduler:
+    type: WarmupDecayLR
+    params:
+      total_num_steps:
+      warmup_max_lr: ${learning_rate}
+      warmup_num_steps:
+      warmup_type: linear
+  gradient_clipping: ${max_grad_norm}
+#  fp16:
+#    enabled: ${fp16}
+#    initial_scale_power: 12
+  bf16:
+    enabled: ${fp16}
+#  autotuning:
+#    enabled: true
+#    arg_mappings:
+#      train_micro_batch_size_per_gpu: "per_gpu_train_batch_size"
+#      gradient_accumulation_steps: "gradient_accumulation_steps"
+#      zero_optimization: "ds_cfg.zero_optimization"
+  zero_optimization:
+    stage: 1
+    contiguous_gradients: True
+    overlap_comm: True
+    reduce_scatter: True
+    reduce_bucket_size: 5e8
+    allgather_bucket_size: 5e8
+#    offload_optimizer:
+#      device: cpu
+#      pin_memory: True
+#    offload_param:
+#      device: cpu
+#      pin_memory: True
+#  activation_checkpointing:
+#    partition_activations: True
+#    cpu_checkpointing: True
+#    contiguous_memory_optimization: False
+#    number_checkpoints: False
+#    synchronize_checkpoint_boundary: False
+#    profile: False
+  steps_per_print: 1024
+
+
+summary_helper:
+#  _target_: general_util.tensorboard_helper.SummaryWriterHelper
+  _target_: general_util.tensorboard_helper.WandbWriter
+  batch_index_or_keys:
+#    "train/pair_value_num": pair_value_num
+#    "train/pair_label_num": pair_label_num
+#    "train/dropped_op_cnt": dropped_op_cnt
+#    "train/invalid_path": invalid_path
+  outputs_index_or_keys:
+#    "train/mlm_loss": mlm_loss
+#    "train/cls_loss": cls_loss
+#    "train/tagging_loss": tagging_loss
+#    "train/path_gen_loss": path_gen_loss
+
+# Temporary variables
+n_gpu:
+device:
+train_batch_size:
+eval_batch_size:
+world_size:
+world_rank:

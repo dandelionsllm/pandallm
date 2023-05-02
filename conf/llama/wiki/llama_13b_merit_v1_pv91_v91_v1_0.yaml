@@ -1,0 +1,165 @@
+hydra:
+  run:
+    dir: ./
+
+train_file: wiki_erica_path/v9.1_fixed/distant_path_v9.1_fix_no_shuffle.train.0.pkl
+dev_file: wiki_erica_path/v9.1_fixed/distant_path_v9.1_fix_no_shuffle.dev.pkl
+test_file:
+
+# Model
+model:
+  _target_: models.llama.LlamaForMultipleChoiceCLS.from_pretrained
+  num_labels: 1
+  use_peft: True
+  lora_config:
+    _target_: models.llama.LoraConfig
+    task_type: CAUSAL_LM
+    inference_mode: False
+    target_modules: ["q_proj", "v_proj"]
+    r: 8
+    lora_alpha: 16
+    lora_dropout: 0.1
+
+model_eval:
+  _target_: models.llama.LlamaForMultipleChoiceCausalLM.from_pretrained_peft_eval
+  base_model_name_or_path: ${model_name_or_path}
+
+
+# Data loading
+read_tensor_train:
+  _target_: data.wiki_entity_path_v9_1_2.convert_examples_into_features_seq2seq
+  max_neg_num: 3
+  aug_num: 1
+  max_seq_length: 512
+  shuffle_context: False
+  min_rep_num: 5
+  geo_p: 0.4
+  deduct_ratio: 1.0
+  context_ratio: 1.0
+  noise_sent_ratio: 0.0
+  num_workers: 128
+
+read_tensor_dev:
+  _target_: data.wiki_entity_path_v9_1_2.convert_examples_into_features_seq2seq
+  max_neg_num: 3
+  aug_num: 1
+  max_seq_length: 512
+  shuffle_context: False
+  min_rep_num: 5
+  geo_p: 0.4
+  deduct_ratio: 1.0
+  context_ratio: 1.0
+  noise_sent_ratio: 0.0
+  num_workers: 48
+
+extended_vocab:
+
+# Data collator
+collator:
+  _target_: data.collators.wiki_seq2seq_collator.WikiSeq2SeqCollator
+  max_seq_length: 512
+  tokenizer: pretrained-models/LLaMA/llama-13b
+  causal_lm: True
+
+# Dataloader
+num_workers: 2
+prefetch_factor: 2
+
+do_preprocess: False
+
+# Wiki path pretrain v8.2
+model_name_or_path: pretrained-models/LLaMA/llama-13b
+pretrain:
+
+output_dir: experiments/llama.13b.lora.wiki_erica_path_v9.1_v9.1.v1.0.1aug.seq512.w6.adamw.500steps.NA100
+
+do_train: True
+evaluate_during_training: False
+
+do_eval: True
+eval_sub_path: checkpoint-*
+
+# Training hyper-parameters
+per_gpu_train_batch_size: 1
+per_gpu_eval_batch_size: 1
+learning_rate: 1e-4
+gradient_accumulation_steps: 682
+weight_decay: 0.01
+adam_epsilon: 1e-6
+adam_betas: "(0.9, 0.95)"
+max_grad_norm: 5.0
+num_train_epochs: 10
+max_steps: 500
+warmup_proportion: 0.05
+warmup_steps: 0
+
+# Optimizer
+optimizer:
+use_nvlamb:
+bit_training:
+
+
+logging_steps: 1
+#save_best: True
+save_best: False
+save_steps: 100
+eval_steps: 100
+ddp_eval: True
+no_cuda: False
+seed: 42
+local_rank: -1
+fp16: True
+fp16_opt_level: O1
+fp16_bfloat16: True
+
+# Prediction config
+prediction_cfg:
+  metric: "acc"
+  measure: 1
+  best_checkpoint:
+  best_result:
+eval_forward_fn:
+  _target_: general_util.evaluator.DiscriminatorForwardFn
+post_process:
+
+#dist_init:
+#  _target_: general_util.dist_utils.setup_slurm_distributed
+
+
+# fairscale.FullyShardedDP
+fairscale_config:
+#  _target_: general_util.fsdp_utils.recursive_initialize
+#  _target_: general_util.fsdp_utils.default_initialize
+#  _target_: general_util.fsdp_utils.default_initialize_v2
+  _target_: general_util.torch_fsdp_utils.torch_fsdp_peft_auto_wrap
+  fp16: ${fp16}
+#  move_grads_to_cpu: False
+#  move_params_to_cpu: False
+#  flatten_parameters: False
+  fp16_bfloat16: ${fp16_bfloat16}
+#  disable_reshard_on_root: False
+
+
+# Lightseq config
+with_lightseq: False
+
+
+summary_helper:
+  _target_: general_util.tensorboard_helper.SummaryWriterHelper
+  batch_index_or_keys:
+#    "train/pair_value_num": pair_value_num
+#    "train/pair_label_num": pair_label_num
+#    "train/dropped_op_cnt": dropped_op_cnt
+#    "train/invalid_path": invalid_path
+  outputs_index_or_keys:
+#    "train/mlm_loss": mlm_loss
+    "train/cls_loss": cls_loss
+#    "train/tagging_loss": tagging_loss
+#    "train/path_gen_loss": path_gen_loss
+
+# Temporary variables
+n_gpu:
+device:
+train_batch_size:
+eval_batch_size:
+world_size:

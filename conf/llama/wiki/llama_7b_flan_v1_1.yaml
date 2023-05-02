@@ -1,0 +1,148 @@
+hydra:
+  run:
+    dir: ./
+
+train_file: ../research.data/flan_v2_shuffle/*.pt
+dev_file:
+test_file:
+
+# Model
+model:
+  _target_: models.llama.LlamaForConditionalGeneration.from_pretrained
+  use_peft: False
+#  gradient_checkpointing: True
+#  lora_config:
+#    _target_: models.llama.LoraConfig
+#    task_type: CAUSAL_LM
+#    inference_mode: False
+#    target_modules: ["q_proj", "v_proj"]
+#    r: 8
+#    lora_alpha: 16
+#    lora_dropout: 0.1
+
+#model_eval:
+#  _target_: models.llama.LlamaForMultipleChoiceCausalLM.from_pretrained_peft_eval
+#  base_model_name_or_path: ${model_name_or_path}
+
+
+# Data loading
+read_tensor:
+  _target_: data.collators.flan.FlanCollectionGroupDataset
+
+
+extended_vocab:
+
+# Data collator
+collator:
+  _target_: data.collators.flan.FlanCollatorOverCollator
+  collator:
+  max_seq_length: 1000
+  tokenizer: pretrained-models/LLaMA/llama-7b
+  decoder_only: True
+
+# Dataloader
+num_workers: 4
+prefetch_factor: 2
+
+do_preprocess: False
+
+# Wiki path pretrain v8.2
+model_name_or_path: pretrained-models/LLaMA/llama-7b
+pretrain:
+
+#output_dir: experiments/llama.7b.flan.10M.v1.0.seq1024.w8.adamw.NA100.0401
+output_dir: experiments/llama.7b.flan.10M.v1.0.seq1024.w8.adamw.NA100.0405
+
+do_train: True
+evaluate_during_training: False
+
+do_eval: True
+eval_sub_path: checkpoint-*
+
+# Training hyper-parameters
+per_gpu_train_batch_size: 1
+per_gpu_eval_batch_size: 1
+learning_rate: 1e-4
+gradient_accumulation_steps: 512
+weight_decay: 0.00
+adam_epsilon: 1e-6
+adam_betas: "(0.9, 0.95)"
+max_grad_norm: 5.0
+num_train_epochs: 1
+total_dataset_len: 760000000
+max_steps: 4882
+warmup_proportion: 0
+warmup_steps: 100
+
+# Optimizer
+optimizer:
+use_nvlamb:
+bit_training:
+
+
+logging_steps: 1
+#save_best: True
+save_best: False
+save_steps: 500
+eval_steps: 500
+ddp_eval: True
+no_cuda: False
+seed: 42
+local_rank: -1
+fp16: True
+fp16_opt_level: O1
+fp16_bfloat16: True
+
+# Prediction config
+prediction_cfg:
+  metric: "acc"
+  measure: 1
+  best_checkpoint:
+  best_result:
+eval_forward_fn:
+  _target_: general_util.evaluator.DiscriminatorForwardFn
+post_process:
+
+#dist_init:
+#  _target_: general_util.dist_utils.setup_slurm_distributed
+
+
+# fairscale.FullyShardedDP
+fairscale_config:
+#  _target_: general_util.fsdp_utils.recursive_initialize
+  _target_: general_util.fsdp_utils.default_initialize
+#  _target_: general_util.fsdp_utils.default_initialize_v2
+#  _target_: general_util.torch_fsdp_utils.torch_fsdp_transformer_init
+#  _target_: general_util.torch_fsdp_utils.torch_fsdp_auto_wrap
+  fp16: ${fp16}
+  move_grads_to_cpu: False
+  move_params_to_cpu: False
+  flatten_parameters: False
+#  fp16_bfloat16: ${fp16_bfloat16}
+#  cpu_offload: True
+#  disable_reshard_on_root: False
+
+
+# Lightseq config
+with_lightseq: False
+
+
+summary_helper:
+  _target_: general_util.tensorboard_helper.SummaryWriterHelper
+  batch_index_or_keys:
+#    "train/pair_value_num": pair_value_num
+#    "train/pair_label_num": pair_label_num
+#    "train/dropped_op_cnt": dropped_op_cnt
+#    "train/invalid_path": invalid_path
+  outputs_index_or_keys:
+#    "train/mlm_loss": mlm_loss
+#    "train/cls_loss": cls_loss
+#    "train/tagging_loss": tagging_loss
+#    "train/path_gen_loss": path_gen_loss
+
+# Temporary variables
+n_gpu:
+device:
+train_batch_size:
+eval_batch_size:
+world_size:

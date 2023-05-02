@@ -13,7 +13,7 @@
 
 欢迎来到我们的海外中文大语言模型开源项目—— Panda！该项目旨在提供一款开源、高质量的中文大语言模型，能够支持各种自然语言处理任务, 并且特别注重海外华人使用体验。
 
-Panda 大语言模型目前立足于 Llama-7B,  -13B，-33B, -65B 架构, 并在大量开源中文文本数据集上面进行了大规模训练和优化。Panda 语言模型更注重覆盖全球华人使用场景，并致力于提供高质量的中文语言模型，使得全球华人能够更加便捷地进行各种自然语言处理任务。未来会切换到新的底座模型或者训练自己的底座模型。
+Panda 大语言模型目前立足于 Llama-7B,  -13B，-30B, -65B 架构, 并在大量开源中文文本数据集上面进行了大规模训练和优化。Panda 语言模型更注重覆盖全球华人使用场景，并致力于提供高质量的中文语言模型，使得全球华人能够更加便捷地进行各种自然语言处理任务。未来会切换到新的底座模型或者训练自己的底座模型。
 
 
 我们的 Panda 模型以及训练涉及的中文数据集将以开源形式发布，任何人都可以免费使用并参与开发。我们欢迎来自全球的开发者一起参与到该项目中，共同推动中文自然语言处理技术的发展。
@@ -46,15 +46,14 @@ Panda 大语言模型目前立足于 Llama-7B,  -13B，-33B, -65B 架构, 并在
 <h2 id="model">项目内容</h2>
 
 ### Panda 模型
-详见Panda/train，我们集成了Deepspeed，支持模型pretrain，finetune，lora (后续推出)，distillation (后续推出)
+详见Panda/train，我们集成了Deepspeed，支持模型pretrain，finetune，lora，distillation (后续推出)
 
 我们目前开放基于中英文语料库的与训练与调优模型：Panda-7B 和 Panda-13B。
 
 
-### Flan-Lamma 模型
+[//]: # (### Flan-Lamma 模型)
 
-详见Flan_Lamma/train。模型训练样本基于Flan 数据集。我们集成了Deepspeed，支持模型pretrain，finetune，lora (后续推出)，distillation (后续推出)
-
+[//]: # (详见Flan_Lamma/train。模型训练样本基于Flan 数据集。我们集成了Deepspeed，支持模型pretrain，finetune，lora &#40;后续推出&#41;，distillation &#40;后续推出&#41;)
 
 模型版本：
 
@@ -67,9 +66,9 @@ Panda 大语言模型目前立足于 Llama-7B,  -13B，-33B, -65B 架构, 并在
 | Flan-Lamma-7B   | 7B         |                                  |
 
 
-
-Note 1: 因为LLaMA权重License的存在，我们无法直接发布完整的模型权重，因此我们放出了训练后模型的权重与原始LLaMA权重的差，保证能够获得LLaMA权重的用户能够同样使用这些模型。我们提供了一个脚本来帮助转换。  
-Note 2: 由于模型训练期间使用了`bfloat16`，在非安培架构的显卡上直接使用`fp16`格式进行微调时可能会出现无法收敛的情况，需要额外注意。
+**Notes**: 
+1. 因为LLaMA权重License的存在，我们无法直接发布完整的模型权重，因此我们放出了训练后模型的权重与原始LLaMA权重的差，保证能够获得LLaMA权重的用户能够同样使用这些模型。我们提供了一个脚本来帮助转换。  
+2. 由于模型训练期间使用了`bfloat16`，在非安培架构的显卡上直接使用`fp16`格式进行微调时可能会出现无法收敛的情况，需要额外注意。
 
 ## 数据
 模型数据现阶段均采用开源的公开中英文语料数据集：
@@ -77,17 +76,16 @@ Note 2: 由于模型训练期间使用了`bfloat16`，在非安培架构的显�
 
 ### 中文 instruction-tuning
 
-- 维基百科(wiki2019zh)，100万个结构良好的中文词条  
+- [维基百科(wiki2019zh)，100万个结构良好的中文词条](https://github.com/brightmart/nlp_chinese_corpus)  
 - 新闻语料(news2016zh)，250万篇新闻，含关键词、描述  
 - 百科问答(baike2018qa)，150万个带问题类型的问答  
 - 社区问答json版(webtext2019zh)，410万个高质量社区问答，适合训练超大模型  
 - 翻译语料(translation2019zh)，520万个中英文句子对  
-- Chinese Open Instruction Generalist (COIG) 
+- [Chinese Open Instruction Generalist (COIG)](https://huggingface.co/datasets/BAAI/COIG) 
 
-Notes 1: 对于除维基百科和新闻语料外的其他语料，用Conditional Generation的方式优化，即instruction部分与输入部分不计算损失，只计算输出部分的损失。除COIG外的语料中的instruction为固定模板。
-
-
-Notes 2: 一开始我们将以上所有语料混合在一起进行训练，但发现最终的模型在instruction following方面的能力并不好，因此我们决定单独在COIG数据集上进行指令微调，并得到最终模型。推测原因可能是COIG在整体训练数据中的占比过小，可选的解决方案是对COIG加大采样的概率。
+**Notes**
+1. 对于除维基百科和新闻语料外的其他语料，用Conditional Generation的方式优化，即instruction部分与输入部分不计算损失，只计算输出部分的损失。除COIG外的语料中的instruction为固定模板。
+2. 一开始我们将以上所有语料混合在一起进行训练，但发现最终的模型在instruction following方面的能力并不好，因此我们决定单独在COIG数据集上进行指令微调，并得到最终模型。推测原因可能是COIG在整体训练数据中的占比过小，可选的解决方案是对COIG加大采样的概率。
 
 
 ### 英文 instruction-tuning
@@ -101,20 +99,16 @@ Deepspeed Zero-1 + Gradient Checkpointing
 ### 模型训练
 
 对应模型的训练时超参数见：
-
-
-### LLaMA-7b pretrain on general Chinese Corpus
-
+```
+# LLaMA-7b pretrain on general Chinese Corpus
 conf/llama/zh/llama_7b_zh_instruct_v1_0_ds.yaml
 
-### LLaMA-7b instruction tuning on COIG
-
+# LLaMA-7b instruction tuning on COIG
 conf/llama/zh/llama_7b_zh_instruct_coig_sft_v1_0_ds.yaml
 
-### LLaMA-13b pretrain on general Chinese Corpus (Ongoing)
-
+# LLaMA-13b pretrain on general Chinese Corpus (Ongoing)
 conf/llama/zh/llama_13b_zh_instruct_v1_0_ds.yaml
-
+```
 
 <h2 id="evaluation">实验测评</h2>
 

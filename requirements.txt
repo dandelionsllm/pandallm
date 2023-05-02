@@ -1,0 +1,10 @@
+wandb
+nltk
+tensorboard
+sentencepiece
+transformers==4.28.1
+peft
+torch==2.0.0
+hydra-core
+fairscale
+deepspeed==0.8.3
