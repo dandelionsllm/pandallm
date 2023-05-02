@@ -37,7 +37,7 @@
 
 <h2 id="news">最近更新</h2>
 
-发布了大模型 **Panda** 和 **Flan-Lamma** 的technical report！
+发布了大模型 **Panda** 和 **Flan-LLaMA** 的technical report！
 
 论文链接： 
 
@@ -149,7 +149,6 @@ HYDRA_FULL_ERROR=1 deepspeed --include localhost:0,1,2,3,4,5,6,7 trainer_base_ds
 |----------------------------|--------|-------|--------|
 | llama-zh​                        	| 27.41​ | 43.02​ | 43.66​ |
 | llama-zh-instruct (9k)​            | **31.93**​ | **47.30**​ | **57.04**​ |
-|   2000 steps​                  	| 26.22​ | 39.05​ | ​42.11​ |
 |   3000 steps​                 	| 26.22​ | 39.05​ | 42.11​ |
 |   6000 steps​                  	| 30.30​ | 47.14​ | ​56.94​ |
 | belle-llama-ext-7b​         	| 26.41​ | 29.52​ | ​28.87​ |
