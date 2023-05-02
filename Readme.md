@@ -1,5 +1,5 @@
 <p align="center" width="100%">
-<a ><img src="src/imgs/panda.png" alt="Panda" style="width: 60%; min-width: 300px; display: block; margin: auto;"></a>
+<a ><img src="panda_logo.png" alt="Panda" style="width: 60%; min-width: 300px; display: block; margin: auto;"></a>
 </p>
 
 [![Code License](https://img.shields.io/badge/Code%20License-Apache_2.0-green.svg)](https://github.com/tatsu-lab/stanford_alpaca/blob/main/LICENSE)
