@@ -73,16 +73,21 @@ Note 2: 由于模型训练期间使用了`bfloat16`，在非安培架构的显�
 ## 数据
 模型数据现阶段均采用开源的公开中英文语料数据集：
 
+
 ### 中文 instruction-tuning
 
-维基百科(wiki2019zh)，100万个结构良好的中文词条  
-新闻语料(news2016zh)，250万篇新闻，含关键词、描述  
-百科问答(baike2018qa)，150万个带问题类型的问答  
-社区问答json版(webtext2019zh)，410万个高质量社区问答，适合训练超大模型  
-翻译语料(translation2019zh)，520万个中英文句子对  
-Chinese Open Instruction Generalist (COIG) 
+- 维基百科(wiki2019zh)，100万个结构良好的中文词条  
+- 新闻语料(news2016zh)，250万篇新闻，含关键词、描述  
+- 百科问答(baike2018qa)，150万个带问题类型的问答  
+- 社区问答json版(webtext2019zh)，410万个高质量社区问答，适合训练超大模型  
+- 翻译语料(translation2019zh)，520万个中英文句子对  
+- Chinese Open Instruction Generalist (COIG) 
+
 Notes 1: 对于除维基百科和新闻语料外的其他语料，用Conditional Generation的方式优化，即instruction部分与输入部分不计算损失，只计算输出部分的损失。除COIG外的语料中的instruction为固定模板。
+
+
 Notes 2: 一开始我们将以上所有语料混合在一起进行训练，但发现最终的模型在instruction following方面的能力并不好，因此我们决定单独在COIG数据集上进行指令微调，并得到最终模型。推测原因可能是COIG在整体训练数据中的占比过小，可选的解决方案是对COIG加大采样的概率。
+
 
 ### 英文 instruction-tuning
 
