@@ -174,10 +174,10 @@ Training epochs
 
 <h2 id="acknowledge"> 开发者</h2>
 
-Fangkai Jiao 
-Bosheng Ding 
-Tianze Luo
-Zhanfeng Mo
+Fangkai Jiao  
+Bosheng Ding  
+Tianze Luo  
+Zhanfeng Mo  
 
 
 ### 免责声明
