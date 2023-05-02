@@ -44,15 +44,18 @@ Panda 语言模型目前立足于 Llama-7B,  -13B 架构, 并在 xxx 的开源�
 
 <h2 id="model">项目内容</h2>
 
-## Panda 模型
+### Panda 模型
 详见Panda/train，我们集成了Deepspeed，支持模型pretrain，finetune，lora (后续推出)，distillation (后续推出)
 
 我们目前开放基于中英文语料库的与训练与调优模型：Panda-7B 和 Panda-13B。
 
 
-## Flan-Lamma 模型
+### Flan-Lamma 模型
 
-详Flan_Lamma/train。模型训练样本基于Flan 数据集。我们集成了Deepspeed，支持模型pretrain，finetune，lora (后续推出)，distillation (后续推出)
+详见Flan_Lamma/train。模型训练样本基于Flan 数据集。我们集成了Deepspeed，支持模型pretrain，finetune，lora (后续推出)，distillation (后续推出)
+
+
+模型版本：
 
 
 |  模型名称      | 模型大小 | 下载链接                                            |
