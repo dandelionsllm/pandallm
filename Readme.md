@@ -28,11 +28,9 @@
 
 3. [实验测评](#evaluation)
 
-4. [模型部署](#usage)
+4. [如何参与](#contribute)
 
-5. [如何参与](#contribute)
-
-6. [鸣谢](#acknowledge)
+5. [鸣谢](#acknowledge)
 
 
 <h2 id="news">最近更新</h2>
