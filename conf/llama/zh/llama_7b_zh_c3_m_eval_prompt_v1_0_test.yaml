@@ -1,0 +1,199 @@
+hydra:
+  run:
+    dir: ./
+
+#train_file: reclor_data/train.json
+train_file: c3/c3-m-train.json
+dev_file: c3/c3-m-dev.json
+test_file: c3/c3-m-test.json
+#train_file: logiqa-v2/train_zh.txt
+#dev_file: logiqa-v2/dev_zh.txt
+#test_file: logiqa-v2/test_zh.txt
+
+# Model
+#model:
+#  _target_: models.llama.LlamaForConditionalGeneration.from_pretrained
+#  torch_dtype: "auto"
+#  vocab_size: 32001
+#  pad_token_id: 32000
+#  num_labels: 1
+model:
+#  _target_: models.llama.LlamaForConditionalGeneration.from_pretrained
+  _target_: transformers.models.llama.modeling_llama.LlamaForCausalLM.from_pretrained
+  torch_dtype: "auto"
+
+
+# Data loading
+read_tensor:
+  _target_: data.reclor_prompt.ReClorGenerativeDatasetZh
+  prompt_generator:
+    _target_: data.reclor_prompt.ReClorExemplarGenerator
+    file_path: ${train_file}
+    shot: 0
+    random_sampling: False
+    read_func:
+      _target_: data.readers.DreamReader
+    instruct: "阅读下面的文章并从选项中选择的答案回答问题："
+  read_func:
+    _target_: data.readers.DreamReader
+  suffix: "本题的答案是："
+
+
+extended_vocab:
+
+# Data collator
+collator:
+  _target_: data.reclor_prompt.ReClorGenerativeCollator
+  tokenizer: ${model_name_or_path}
+  max_seq_length: 2048
+
+# Dataloader
+num_workers: 4
+prefetch_factor: 2
+
+# Wiki path pretrain v8.2
+#model_name_or_path: pretrained-models/LLaMA/llama-7b
+#model_name_or_path: /home/fangkai/instruct-v1.0-coig-sft-v1.0/checkpoint-3000
+#model_name_or_path: /home/fangkai/instruct-v1.0-coig-sft-v1.0/checkpoint-3000
+#model_name_or_path: /home/fangkai/llama-zh-pretrain-v1.0/checkpoint-1750
+model_name_or_path: ${output_dir}/checkpoint-1750
+pretrain:
+
+#output_dir: experiments/llama.7b.flan.v1.0.seq1024.w8.adamw.500steps.NA100.0401
+#output_dir: experiments/llama.7b.flan.10M.v1.0.seq1024.w8.adamw.NA100.0405.ds
+#exp_name: llama.7b.flan.10M.v1.2.seq1024.w8.adamw.NA100.0407.ds
+#exp_notes:
+#output_dir: experiments/${exp_name}  # Fix <pad token id>
+#exp_name: llama.7b.merit_v91_v91.seq2seq.v4.0.3aug.w8.adamw.1000steps.NA100.0422
+#exp_notes:
+#output_dir: experiments/${exp_name}  # Fix <pad token id>
+output_dir: /home/fangkai/llama-zh-pretrain-v1.0/
+#output_dir: /home/fangkai/instruct-v1.0-coig-sft-v1.0/
+
+do_train: False
+evaluate_during_training: True
+
+do_eval: True
+eval_sub_path: checkpoint-*
+
+# Training hyper-parameters
+per_gpu_train_batch_size: 4
+per_gpu_eval_batch_size: 1
+learning_rate: 1e-5
+#learning_rate: 5e-6
+gradient_accumulation_steps: 2
+weight_decay: 0.01
+adam_epsilon: 1e-6
+adam_betas: "(0.9, 0.98)"
+#adam_betas: "(0.9, 0.999)"
+max_grad_norm: 0.0
+#max_grad_norm: 1.0
+num_train_epochs: 10
+max_steps: 0
+warmup_proportion: 0.1
+warmup_steps: 0
+
+# Optimizer
+optimizer:
+use_nvlamb:
+bit_training:
+
+logging_steps: 5
+save_steps: -1
+save_best: False
+eval_steps: 100
+ddp_eval: True
+no_cuda: False
+seed: 42
+local_rank: -1
+fp16: True
+fp16_opt_level: O1
+fp16_bfloat16: True
+
+# Prediction config
+prediction_cfg:
+  metric: "acc"
+  measure: 1
+  best_checkpoint:
+  best_result:
+eval_forward_fn:
+  _target_: general_util.evaluator.GeneratorForwardFn
+  generation_config:
+    _target_: transformers.generation.configuration_utils.GenerationConfig
+#    max_new_tokens: 128
+    max_new_tokens: 64
+    num_beams: 1
+#    num_beams: 4
+    num_return_sequences: 1
+    output_scores: False
+#    top_k: 0.75
+  clean_input: True
+post_process:
+  _target_: post_processors.reclor.GeneratorPredictor
+#  answer_trigger: "The answer is"
+  answer_trigger: ""
+  reverse: False
+predict_dir: ${output_dir}/c3_m_test_prompt_${read_tensor.prompt_generator.shot}shot.v1.0
+
+#dist_init:
+#  _target_: general_util.dist_utils.setup_slurm_distributed
+
+
+# fairscale.FullyShardedDP
+fairscale_config:
+  _target_: general_util.fsdp_utils.default_initialize
+  fp16: ${fp16}
+  reshard_after_forward: False
+  move_grads_to_cpu: False
+  move_params_to_cpu: False
+
+# Deepspeed config
+ds_cfg:
+  train_micro_batch_size_per_gpu: ${per_gpu_train_batch_size}
+  gradient_accumulation_steps: ${gradient_accumulation_steps}
+  optimizer:
+    type: AdamW
+    params:
+      lr: ${learning_rate}
+      betas: [0.9, 0.999]
+      eps: ${adam_epsilon}
+      weight_decay: ${weight_decay}
+  scheduler:
+    type: WarmupDecayLR
+    params:
+      total_num_steps:
+      warmup_max_lr: ${learning_rate}
+      warmup_num_steps:
+      warmup_type: linear
+  gradient_clipping: ${max_grad_norm}
+  fp16:
+    enabled: ${fp16}
+    initial_scale_power: 12
+  zero_optimization:
+    stage: 3
+#    offload_optimizer:
+#      device: cpu
+#      pin_memory: True
+#    offload_param:
+#      device: cpu
+#      pin_memory: True
+#  activation_checkpointing:
+#    partition_activations: True
+#    cpu_checkpointing: True
+#    contiguous_memory_optimization: False
+#    number_checkpoints: False
+#    synchronize_checkpoint_boundary: False
+#    profile: False
+  steps_per_print: 1024
+
+summary_helper:
+  _target_: general_util.tensorboard_helper.SummaryWriterHelper
+  batch_index_or_keys:
+  outputs_index_or_keys:
+
+# Temporary variables
+n_gpu:
+device:
+train_batch_size:
+eval_batch_size:
+world_size:

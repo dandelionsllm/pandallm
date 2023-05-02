@@ -1,7 +1,7 @@
 import json
 import os
 import re
-from typing import Dict, List, Any, Union
+from typing import Dict, List, Any, Union, Callable
 
 import numpy as np
 import torch
@@ -128,7 +128,8 @@ class TaggingSaver(DistGatherMixin):
 def answer_clean(pred_seq: str, reverse: bool = False, answer_trigger: str = "The answer is"):
     if answer_trigger:
         pred_seq = pred_seq.split(answer_trigger)[1]
-    pred = re.findall(r'A|B|C|D|E', pred_seq)
+    # pred = re.findall(r'A|B|C|D|E', pred_seq)
+    pred = re.findall(r'A|B|C|D', pred_seq)
     if len(pred) == 0:
         return ""
     if reverse:
@@ -200,6 +201,80 @@ class GeneratorPredictor(DistGatherMixin):
                 npy_outputs.append(ord(pred["cleaned_output"]) - ord("A"))
             else:
                 npy_outputs.append(0)
-        np.save(os.path.join(output_dir, "decode_results.npy"), np.array(npy_outputs))
+        if not dist.is_initialized() or dist.get_rank() == 0:
+            np.save(os.path.join(output_dir, "decode_results.npy"), np.array(npy_outputs))
         assert len(npy_outputs) == len(existing_ids), (len(npy_outputs), len(self.predictions), len(existing_ids))
         return {"acc": correct / len(existing_ids)}, self.predictions
+
+
+class GeneratorPredictorV2(DistGatherMixin):
+    def __init__(self, answer_cleaner: Callable):
+        self.predictions = []
+        self.answer_cleaner = answer_cleaner
+
+    def __call__(self, meta_data: Union[List[Dict[str, Any]], Dict[str, Any]], batch_model_outputs, ddp: bool = False):
+        labels = meta_data["label"]
+        prompt_index = meta_data["prompt_index"]
+        index = meta_data["index"].tolist()
+        inputs = meta_data["input"]
+
+        pred_seq = batch_model_outputs["generated_seq"]
+        assert len(labels) == len(prompt_index) == len(index) == len(inputs), (len(labels), len(prompt_index), len(index), len(inputs))
+        if len(pred_seq) == len(labels):
+            pass
+        elif len(pred_seq) % len(labels) == 0:
+            pass
+        else:
+            raise ValueError((len(pred_seq), len(labels)))
+
+        predictions = [
+            {
+                "label": label,
+                "index": idx,
+                "prompt_index": prompt_idx,
+                "output": res,
+                "cleaned_output": self.answer_cleaner(res, src),
+                "input": src,
+            } for label, idx, prompt_idx, res, src in zip(labels, index, prompt_index, pred_seq, inputs)
+        ]
+
+        if ddp:
+            gather_res = self.gather_object(predictions)
+            if dist.get_rank() == 0:
+                tmp = []
+                for item in gather_res:
+                    tmp.extend(item)
+                predictions = tmp
+
+        self.predictions.extend(predictions)
+
+    def get_results(self, output_dir: str):
+        if dist.is_initialized():
+            output_file = os.path.join(output_dir, f"decode_results_rank{dist.get_rank()}.json")
+        else:
+            output_file = os.path.join(output_dir, "decode_results.json")
+
+        json.dump(self.predictions, open(output_file, "w"))
+        self.predictions = sorted(self.predictions, key=lambda x: x["index"])
+
+        correct = 0
+        existing_ids = set()
+        npy_outputs = []
+        for pred in self.predictions:
+            if pred["index"] in existing_ids:
+                continue
+            existing_ids.add(pred["index"])
+            if pred["label"] == pred["cleaned_output"]:
+                correct += 1
+            if pred["cleaned_output"] and len(pred["cleaned_output"]) == 1:
+                npy_outputs.append(ord(pred["cleaned_output"]) - ord("A"))
+            else:
+                npy_outputs.append(0)
+
+        metrics = {"acc": correct / len(existing_ids)}
+
+        if not dist.is_initialized() or dist.get_rank() == 0:
+            np.save(os.path.join(output_dir, "decode_results.npy"), np.array(npy_outputs))
+            json.dump(metrics, open(os.path.join(output_dir, "metrics.json"), "w"))
+        assert len(npy_outputs) == len(existing_ids), (len(npy_outputs), len(self.predictions), len(existing_ids))
+        return metrics, self.predictions
