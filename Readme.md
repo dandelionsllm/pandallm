@@ -23,7 +23,7 @@ Panda 语言模型目前立足于 Llama-7B,  -13B 架构, 并在 xxx 的开源�
 
 2. [项目内容](#model)
 
-3. [实验结果](#evaluation)
+3. [实验测评](#evaluation)
 
 4. [模型部署](#usage)
 
@@ -97,29 +97,31 @@ Deepspeed Zero-1 + Gradient Checkpointing
 对应模型的训练时超参数见：
 
 ···
-# LLaMA-7b pretrain on general Chinese Corpus
+### LLaMA-7b pretrain on general Chinese Corpus
 
 conf/llama/zh/llama_7b_zh_instruct_v1_0_ds.yaml
 
-# LLaMA-7b instruction tuning on COIG
+### LLaMA-7b instruction tuning on COIG
 
 conf/llama/zh/llama_7b_zh_instruct_coig_sft_v1_0_ds.yaml
 
-# LLaMA-13b pretrain on general Chinese Corpus (Ongoing)
+### LLaMA-13b pretrain on general Chinese Corpus (Ongoing)
 
 conf/llama/zh/llama_13b_zh_instruct_v1_0_ds.yaml
 ···
 
-## 基础能力测评
+<h2 id="evaluation">实验测评</h2>
 
-### 测评数据集
+### 基础能力测评
 
-#### 复杂推理
+#### 测评数据集
+
+##### 复杂推理
 
 [LogiQA-v2](https://github.com/csitfun/LogiQA2.0)
 [C3](https://dataset.org/c3/)
 
-#### 其他能力
+##### 其他能力
 
 Pending
 
@@ -130,7 +132,7 @@ Pending
 
 ### Results
  
-<h2 id="evaluation">实验结果</h2>
+
 
 
 | ​                          | LogiQA-v2​ |  C3-d​ |  C3-m​ |
