@@ -55,95 +55,97 @@ Panda 语言模型目前立足于 Llama-7B,  -13B 架构, 并在 xxx 的开源�
 详Flan_Lamma/train。模型训练样本基于Flan 数据集。我们集成了Deepspeed，支持模型pretrain，finetune，lora (后续推出)，distillation (后续推出)
 
 
-模型版本：
-
-
-模型名称
-模型大小
-下载链接
-Panda-7B
-
-
-
-
-Panda-13B
+|  模型名称      | 模型大小 | 下载链接                                            |
+| --------------- | ---------- | -------------------------------------------------------- |
+| Panda-7B        | 7B         | https://huggingface.co/chitanda/llama-panda-zh-7b-delta   |
+| Panda-Instruct-7B | 7B       | https://huggingface.co/chitanda/llama-panda-zh-coig-7b-delta |
+| Panda-13B       | 13B        |                       |
+| Flan-Lamma-7B   | 7B         |                                  |
 
 
 
-
-Flan-Lamma-7B
-
-
-
-
-Flan-Lamma-13B
-
-
-
-
-
-
-
+Note 1: 因为LLaMA权重License的存在，我们无法直接发布完整的模型权重，因此我们放出了训练后模型的权重与原始LLaMA权重的差，保证能够获得LLaMA权重的用户能够同样使用这些模型。我们提供了一个脚本来帮助转换。  
+Note 2: 由于模型训练期间使用了`bfloat16`，在非安培架构的显卡上直接使用`fp16`格式进行微调时可能会出现无法收敛的情况，需要额外注意。
 
 ## 数据
 模型数据现阶段均采用开源的公开中英文语料数据集：
 
 ### 中文 instruction-tuning
 
-维基百科(wiki2019zh)，100万个结构良好的中文词条
-新闻语料(news2016zh)，250万篇新闻，含关键词、描述
-百科问答(baike2018qa)，150万个带问题类型的问答
-社区问答json版(webtext2019zh)，410万个高质量社区问答，适合训练超大模型
-翻译语料(translation2019zh)，520万个中英文句子对
-
+维基百科(wiki2019zh)，100万个结构良好的中文词条  
+新闻语料(news2016zh)，250万篇新闻，含关键词、描述  
+百科问答(baike2018qa)，150万个带问题类型的问答  
+社区问答json版(webtext2019zh)，410万个高质量社区问答，适合训练超大模型  
+翻译语料(translation2019zh)，520万个中英文句子对  
+Chinese Open Instruction Generalist (COIG) 
+Notes 1: 对于除维基百科和新闻语料外的其他语料，用Conditional Generation的方式优化，即instruction部分与输入部分不计算损失，只计算输出部分的损失。除COIG外的语料中的instruction为固定模板。
+Notes 2: 一开始我们将以上所有语料混合在一起进行训练，但发现最终的模型在instruction following方面的能力并不好，因此我们决定单独在COIG数据集上进行指令微调，并得到最终模型。推测原因可能是COIG在整体训练数据中的占比过小，可选的解决方案是对COIG加大采样的概率。
 
 ### 英文预训练
 
 ### 英文 instruction-tuning
 
+为了提升模型的基础能力，我们选择使用FLAN Collection进行训练。由于FLAN collection语料规模过于庞大，我们按比例抽取了7M的语料用于训练，且最终性能仍远落后于FLAN-T5-3B，因此目前我们决定暂时停止该方向的训练，并思考其他可能的构建较小的同时具有较强基础能力的语言模型的方向。
 
-## 训练方法
+## 训练框架
 
+Deepspeed Zero-1 + Gradient Checkpointing
 
 ### 模型训练
 
-我们采用instruction tuning。。。。
+对应模型的训练时超参数见：
 
-模型训练参数设计如下：
+···
+# LLaMA-7b pretrain on general Chinese Corpus
 
-Learning rate
+conf/llama/zh/llama_7b_zh_instruct_v1_0_ds.yaml
 
+# LLaMA-7b instruction tuning on COIG
 
-Batchsize
+conf/llama/zh/llama_7b_zh_instruct_coig_sft_v1_0_ds.yaml
 
+# LLaMA-13b pretrain on general Chinese Corpus (Ongoing)
 
-Training epochs
+conf/llama/zh/llama_13b_zh_instruct_v1_0_ds.yaml
+···
 
+## 基础能力测评
 
+### 测评数据集
 
+#### 复杂推理
 
+[LogiQA-v2](https://github.com/csitfun/LogiQA2.0)
+[C3](https://dataset.org/c3/)
 
+#### 其他能力
 
+Pending
 
+### Baseline
 
+[BELLE-LLaMA-Ext-7B](https://github.com/LianjiaTech/BELLE)
+[Linly-Chinese-LLaMA-7b-hf](https://github.com/CVI-SZU/Linly) (Huggingface weights of chat-based model in 7B size are not released now. Corresponding results will be updated after weights are released)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+### Results
  
 <h2 id="evaluation">实验结果</h2>
+
+
+| ​                          | LogiQA-v2​ |  C3-d​ |  C3-m​ |
+|----------------------------|--------|-------|--------|
+| llama-zh​                        	| 27.41​ | 43.02​ | 43.66​ |
+| llama-zh-instruct (9k)​            | 31.93​ | 47.30​ | 57.04​ |
+|   2000 steps​                  	| 26.22​ | 39.05​ | ​42.11​ |
+|   3000 steps​                 	| 26.22​ | 39.05​ | 42.11​ |
+|   6000 steps​                  	| 30.30​ | 47.14​ | ​56.94​ |
+| belle-llama-ext-7b​         	| 26.41​ | 29.52​ | ​28.87​ |
+| Linly-Chinese-LLaMA-7b-hf​ | 25.91​ | 32.28​ | 34.52​ |
+
+Note 1: 由于模型对instruction的敏感性不同测评结果可能会有较大波动，测评结果仅供参考，并且可能无法完全反应模型之间的优劣。我们对于所有模型采用了最简单的instruction（可以在对应数据集配置文件中找到）。
+Note 2: Linly-Chinese可能可能在训练时用了额外的前缀（如assistant和user去区分对话中的角色），这可能会进一步提升性能，但我们目前没有测试。后续我们考虑收集多样化的instruction进行评测并汇报平均值。
+Note 3:
+
 
 <h2 id="usage">模型部署</h2>
 
