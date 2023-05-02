@@ -50,7 +50,7 @@
 ### Panda 模型
 详见Panda/train，我们集成了Deepspeed，支持模型pretrain，finetune，lora，distillation (后续推出)
 
-我们目前开放基于中英文语料库的与训练与调优模型：Panda-7B 和 Panda-13B。
+我们目前开放基于中英文语料库的训练与调优模型：Panda-7B 和 Panda-13B。
 
 
 [//]: # (### Flan-Lamma 模型)
