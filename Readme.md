@@ -6,11 +6,14 @@
 [![Data License](https://img.shields.io/badge/Data%20License-CC%20By%20NC%204.0-red.svg)](https://github.com/tatsu-lab/stanford_alpaca/blob/main/DATA_LICENSE)
 
 
+
+
+
 # Panda: 海外中文开源大语言模型
 
 欢迎来到我们的海外中文大语言模型开源项目—— Panda！该项目旨在提供一款开源、高质量的中文大语言模型，能够支持各种自然语言处理任务, 并且特别注重海外华人使用体验。
 
-Panda 语言模型立足于 Llama-7B,  -13B 架构, 并在 xxx 的开源中文文本数据集上面进行了大规模训练和优化。Panda 语言模型更注重覆盖全球华人使用场景，并致力于提供高质量的中文语言模型，使得全球华人能够更加便捷地进行各种自然语言处理任务。
+Panda 语言模型目前立足于 Llama-7B,  -13B 架构, 并在 xxx 的开源中文文本数据集上面进行了大规模训练和优化。Panda 语言模型更注重覆盖全球华人使用场景，并致力于提供高质量的中文语言模型，使得全球华人能够更加便捷地进行各种自然语言处理任务。未来会切换到新的底座模型或者训练自己的底座模型。
 
 我们的 Panda 模型以及训练涉及的中文数据集将以开源形式发布，任何人都可以免费使用并参与开发。我们欢迎来自全球的开发者一起参与到该项目中，共同推动中文自然语言处理技术的发展。
 
@@ -31,10 +34,13 @@ Panda 语言模型立足于 Llama-7B,  -13B 架构, 并在 xxx 的开源中文�
 
 <h2 id="news">最近更新</h2>
 
-发布了大模型Panda 和 Guanaco的technical report！
+发布了大模型Panda 和 Flan-Lamma的technical report！
+
 论文链接： 
 
+
 如何引用我们：
+
 
 <h2 id="model">项目内容</h2>
 
@@ -43,17 +49,53 @@ Panda 语言模型立足于 Llama-7B,  -13B 架构, 并在 xxx 的开源中文�
 
 我们目前开放基于中英文语料库的与训练与调优模型：Panda-7B 和 Panda-13B。
 
-## Guanaco 模型
 
-详见Guanaco/train。模型训练样本基于Flan 数据集。我们集成了Deepspeed，支持模型pretrain，finetune，lora (后续推出)，distillation (后续推出)
+## Flan-Lamma 模型
+
+详Flan_Lamma/train。模型训练样本基于Flan 数据集。我们集成了Deepspeed，支持模型pretrain，finetune，lora (后续推出)，distillation (后续推出)
+
+
+模型版本：
+
+
+模型名称
+模型大小
+下载链接
+Panda-7B
+
+
+
+
+Panda-13B
+
+
+
+
+Flan-Lamma-7B
+
+
+
+
+Flan-Lamma-13B
+
+
+
+
+
+
 
 
 ## 数据
 模型数据现阶段均采用开源的公开中英文语料数据集：
 
-### 中文预训练
-
 ### 中文 instruction-tuning
+
+维基百科(wiki2019zh)，100万个结构良好的中文词条
+新闻语料(news2016zh)，250万篇新闻，含关键词、描述
+百科问答(baike2018qa)，150万个带问题类型的问答
+社区问答json版(webtext2019zh)，410万个高质量社区问答，适合训练超大模型
+翻译语料(translation2019zh)，520万个中英文句子对
+
 
 ### 英文预训练
 
@@ -62,13 +104,43 @@ Panda 语言模型立足于 Llama-7B,  -13B 架构, 并在 xxx 的开源中文�
 
 ## 训练方法
 
-### 模型预训练
 
-我们采用了。。。
+### 模型训练
 
-### Instruction tuning
+我们采用instruction tuning。。。。
 
-训练参数设置。。。
+模型训练参数设计如下：
+
+Learning rate
+
+
+Batchsize
+
+
+Training epochs
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
  
 <h2 id="evaluation">实验结果</h2>
@@ -98,7 +170,15 @@ Panda 语言模型立足于 Llama-7B,  -13B 架构, 并在 xxx 的开源中文�
 
 <h2 id="acknowledge">鸣谢</h2>
 
-我们非常感谢国内的一些大企业支持，为我们提供大量GPU来支持我们的模型训练。这些GPU的高性能计算能力为我们在Panda和Guacuna模型的研究和开发工作提供了强大的支持。
+我们非常感谢国内的一些大企业支持，为我们提供大量GPU来支持我们的模型训练。这些GPU的高性能计算能力为我们在Panda模型的研究和开发工作提供了强大的支持。
+
+<h2 id="acknowledge"> 开发者</h2>
+
+Fangkai Jiao 
+Bosheng Ding 
+Tianze Luo
+Zhanfeng Mo
+
 
 ### 免责声明
 
