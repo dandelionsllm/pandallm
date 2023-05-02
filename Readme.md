@@ -121,9 +121,10 @@ conf/llama/zh/llama_13b_zh_instruct_v1_0_ds.yaml
 - [LogiQA-v2](https://github.com/csitfun/LogiQA2.0)
 - [C3](https://dataset.org/c3/)
 
-##### 其他能力
+### 其他能力
 
-Pending
+测试进行中
+
 
 ### Baseline
 
