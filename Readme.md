@@ -37,7 +37,7 @@
 
 发布了大模型 **Panda** 和 **Flan-LLaMA** 的 technical report！
 
-论文链接： 
+论文链接： https://drive.google.com/file/d/1YmZchzodC-josFHK7aZwEeP6av-XYv6M/view?usp=share_link
 
 
 如何引用我们：
