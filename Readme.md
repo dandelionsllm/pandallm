@@ -11,7 +11,7 @@
 
 # Panda: 海外中文开源大语言模型
 
-欢迎来到我们的海外中文大语言模型开源项目—— Panda！Panda 系列语言模型目前基于 Llama-7B,  -13B，-33B, -65B 进行中文领域上的持续预训练，使用了接近15M条数据，并针对推理能力在中文benchmark上进行了评测，希望能够为中文自然语言处理领域提供具有泛用性的通用基础工具。
+欢迎来到我们的海外中文大语言模型开源项目—— Panda！Panda 系列语言模型目前基于 Llama-7B,  -13B，-33B, -65B 进行中文领域上的持续预训练，使用了接近 15M 条数据，并针对推理能力在中文  benchmark 上进行了评测，希望能够为中文自然语言处理领域提供具有泛用性的通用基础工具。
 
 <!-- 该项目旨在提供一款开源、高质量的中文大语言模型，能够支持各种自然语言处理任务, 并且特别注重海外华人使用体验。-->
 
@@ -35,7 +35,7 @@
 
 <h2 id="news">最近更新</h2>
 
-发布了大模型 **Panda** 和 **Flan-LLaMA** 的technical report！
+发布了大模型 **Panda** 和 **Flan-LLaMA** 的 technical report！
 
 论文链接： 
 
@@ -46,7 +46,7 @@
 <h2 id="model">项目内容</h2>
 
 ### Panda 模型
-详见Panda/train，我们集成了Deepspeed，支持模型pretrain，finetune，lora，distillation (后续推出)
+详见 Panda/train，我们集成了 Deepspeed 加速框架，支持模型 pretrain，finetune，lora 以及 distillation (后续推出).
 
 我们目前开放基于中英文语料库的训练与调优模型：Panda-7B 和 Panda-13B。
 
@@ -68,8 +68,8 @@
 
 
 **Notes**: 
-1. 因为LLaMA权重License的存在，我们无法直接发布完整的模型权重，因此我们放出了训练后模型的权重与原始LLaMA权重的差，保证能够获得LLaMA权重的用户能够同样使用这些模型。我们提供了一个[脚本](https://github.com/dandelionsllm/pandallm/blob/main/apply_delta.py)来帮助转换。  
-2. 由于模型训练期间使用了`bfloat16`，在非安培架构的显卡上直接使用`fp16`格式进行微调时可能会出现无法收敛的情况，需要额外注意。
+1. 因为 LLaMA 权重 License 的存在，我们无法直接发布完整的模型权重，因此我们放出了训练后模型的权重与原始 LLaMA 权重的差，保证能够获得 LLaMA 权重的用户能够同样使用这些模型。我们提供了一个[脚本](https://github.com/dandelionsllm/pandallm/blob/main/apply_delta.py)来帮助转换。  
+2. 由于模型训练期间使用了 `bfloat16`，在非安培架构的显卡上直接使用 `fp16` 格式进行微调时可能会出现无法收敛的情况，需要额外注意。
 
 ## 数据
 模型数据现阶段均采用开源的公开中英文语料数据集：
@@ -85,13 +85,13 @@
 - [Chinese Open Instruction Generalist (COIG)](https://huggingface.co/datasets/BAAI/COIG) 
 
 **Notes**
-1. 对于除维基百科和新闻语料外的其他语料，用Conditional Generation的方式优化，即instruction部分与输入部分不计算损失，只计算输出部分的损失。除COIG外的语料中的instruction为固定模板。
-2. 一开始我们将以上所有语料混合在一起进行训练，但发现最终的模型在instruction following方面的能力并不好，因此我们决定单独在COIG数据集上进行指令微调，并得到最终模型。推测原因可能是COIG在整体训练数据中的占比过小，可选的解决方案是对COIG加大采样的概率。
+1. 对于除维基百科和新闻语料外的其他语料，用 Conditional Generation 的方式优化，即 instruction 部分与输入部分不计算损失，只计算输出部分的损失。除 COIG 外的语料中的 instruction 为固定模板。
+2. 一开始我们将以上所有语料混合在一起进行训练，但发现最终的模型在 instruction following 方面的能力并不好，因此我们决定单独在 COIG 数据集上进行指令微调，并得到最终模型。推测原因可能是 COIG 在整体训练数据中的占比过小，可选的解决方案是对 COIG 加大采样的概率。
 
 
 ### 英文 instruction-tuning
 
-为了提升模型的基础能力，我们选择使用FLAN Collection进行训练。由于FLAN collection语料规模过于庞大，我们按比例抽取了7M的语料用于训练，且最终性能仍远落后于FLAN-T5-3B，因此目前我们决定暂时停止该方向的训练，并思考其他可能的构建较小的同时具有较强基础能力的语言模型的方向。
+为了提升模型的基础能力，我们选择使用 FLAN Collection 进行训练。由于 FLAN collection 语料规模过于庞大，我们按比例抽取了 7M 的语料用于训练，且最终性能仍远落后于 FLAN-T5-3B，因此目前我们决定暂时停止该方向的训练，并思考其他可能的构建较小的同时具有较强基础能力的语言模型的方向。
 
 ## 训练框架
 
@@ -115,7 +115,7 @@ Command:
 ```
 HYDRA_FULL_ERROR=1 deepspeed --include localhost:0,1,2,3,4,5,6,7 trainer_base_ds_mul.py -cp conf/llama/zh -cn <file name of yaml config> 
 ```
-我们的训练使用了2 * 8 * A100 80G GPU。如使用更少的显卡，请相应的调整`gradient_accumulation_steps`和`per_gpu_train_batch_size`。
+我们的训练使用了 2 * 8 * A100 80G GPU。如使用更少的显卡，请相应的调整 `gradient_accumulation_steps` 和 `per_gpu_train_batch_size`.
 
 <h2 id="evaluation">实验测评</h2>
 
@@ -153,9 +153,9 @@ HYDRA_FULL_ERROR=1 deepspeed --include localhost:0,1,2,3,4,5,6,7 trainer_base_ds
 | Linly-Chinese-LLaMA-7b-hf​ | 25.91​ | 32.28​ | 34.52​ |
 
 **Notes**
-1. 由于模型对instruction的敏感性不同测评结果可能会有较大波动，测评结果仅供参考，并且可能无法完全反应模型之间的优劣。我们对于所有模型采用了最简单的instruction（可以在对应数据集配置文件中找到）。
+1. 由于模型对 instruction 的敏感性不同测评结果可能会有较大波动，测评结果仅供参考，并且可能无法完全反应模型之间的优劣。我们对于所有模型采用了最简单的 instruction（可以在对应数据集配置文件中找到）。
 
-2. Linly-Chinese在训练时可能在instruction中添加了额外的前缀（如用assistant和user去区分对话中的角色），在测试时对齐这一点可能会进一步提升性能，但我们目前为了统一instruction并没有对齐。后续我们考虑收集多样化的instruction进行评测并汇报平均值。
+2. Linly-Chinese 在训练时可能在 instruction 中添加了额外的前缀（如用 assistant 和 user 去区分对话中的角色），在测试时对齐这一点可能会进一步提升性能，但我们目前为了统一instruction 并没有对齐。后续我们考虑收集多样化的 instruction 进行评测并汇报平均值。
 
 
 <h2 id="contribute">如何参与</h2>
@@ -174,7 +174,7 @@ HYDRA_FULL_ERROR=1 deepspeed --include localhost:0,1,2,3,4,5,6,7 trainer_base_ds
 
 <h2 id="acknowledge">鸣谢</h2>
 
-我们非常感谢国内的一些大企业支持，为我们提供大量GPU来支持我们的模型训练。这些GPU的高性能计算能力为我们在Panda模型的研究和开发工作提供了强大的支持。
+我们非常感谢国内的一些大企业支持，为我们提供大量 GPU 来支持我们的模型训练。这些 GPU 的高性能计算能力为我们在 Panda 模型的研究和开发工作提供了强大的支持。
 
 <h2 id="acknowledge"> 开发者</h2>
 
@@ -190,4 +190,4 @@ Bosheng Ding
 
 ### 免责声明
 
-我们要求开发者不得将我们开源的代码、数据、模型及后续用此项目生成的衍生物用于任何商业以及为社会带来危害的用途。由Panda 和Flan-LLaMA 任何模型生成的内容均受随机性和不可控因素的影响，本项目无法保证其准确性。本项目不承担任何关于模型输出内容的法律责任，也不对使用相关资源和输出结果可能导致的任何损失承担责任。
+我们要求开发者不得将我们开源的代码、数据、模型及后续用此项目生成的衍生物用于任何商业以及为社会带来危害的用途。由 Panda 和 Flan-LLaMA 任何模型生成的内容均受随机性和不可控因素的影响，本项目无法保证其准确性。本项目不承担任何关于模型输出内容的法律责任，也不对使用相关资源和输出结果可能导致的任何损失承担责任。
