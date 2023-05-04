@@ -62,7 +62,7 @@
 | --------------- | ---------- | -------------------------------------------------------- |
 | Panda-7B        | 7B         | https://huggingface.co/chitanda/llama-panda-zh-7b-delta   |
 | Panda-Instruct-7B | 7B       | https://huggingface.co/chitanda/llama-panda-zh-coig-7b-delta |
-| Panda-13B       | 13B        | Pending                 |
+| Panda-13B       | 13B        | Coming soon                 |
 | Panda-Instruct-13B | 13B     |         |
 | Flan-LLaMA-7B   | 7B         |                                  |
 
