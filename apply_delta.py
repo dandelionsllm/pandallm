@@ -141,7 +141,13 @@ def apply_delta(base_model_path, target_model_path, delta_path):
     print("Applying the delta")
     for name, param in tqdm(base.state_dict().items(), desc="Applying delta"):
         assert name in delta.state_dict()
-        param.data += delta.state_dict()[name]
+        # param.data += delta.state_dict()[name]
+        if "embed_tokens" in name or "lm_head.weight" in name:
+            continue
+        else:
+            param.data += delta.state_dict()[name]
+    base.embed_tokens = delta.embed_tokens
+    base.lm_head.weight = delta.lm_head.weight
 
     print(f"Saving the target model to {target_model_path}")
     base.save_pretrained(target_model_path)
