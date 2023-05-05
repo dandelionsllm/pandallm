@@ -155,12 +155,12 @@ HYDRA_FULL_ERROR=1 deepspeed --include localhost:0,1,2,3,4,5,6,7 trainer_base_ds
 
 | ​                          | LogiQA-v2​ |  C3-d​ |  C3-m​ |
 |----------------------------|--------|-------|--------|
-| Panda-7B​                        	| 27.41​ | 43.02​ | 43.66​ |
-| Panda-Instruct-7B (9k steps)​            | **31.93**​ | **47.30**​ | **57.04**​ |
-| &nbsp;&nbsp;3k steps​                 	| 26.22​ | 39.05​ | 42.11​ |
-| &nbsp;&nbsp;6k steps​                  	| 30.30​ | 47.14​ | ​56.94​ |
 | BELLE-LLaMA-Ext-7B​         	| 26.41​ | 29.52​ | ​28.87​ |
 | Linly-Chinese-LLaMA-7b-hf​ | 25.91​ | 32.28​ | 34.52​ |
+| Panda-7B​ (ours)                     	| 27.41​ | 43.02​ | 43.66​ |
+| Panda-Instruct-7B 3k steps​ (ours)                	| 26.22​ | 39.05​ | 42.11​ |
+| Panda-Instruct-7B 6k steps​ (ours)                  | 30.30​ | 47.14​ | ​56.94​ |
+| Panda-Instruct-7B 9k steps (ours)​           | **31.93**​ | **47.30**​ | **57.04**​ |
 
 **Notes**
 1. 由于模型对 instruction 的敏感性不同测评结果可能会有较大波动，测评结果仅供参考，并且可能无法完全反应模型之间的优劣。我们对于所有模型采用了最简单的 instruction（可以在对应数据集配置文件中找到）。
