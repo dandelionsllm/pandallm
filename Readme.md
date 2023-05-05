@@ -42,6 +42,7 @@
 
 如何引用我们：
 
+```{latex}
 @article{jiao2023panda,
   title={Panda {LLM}: Training Data and Evaluation for Open-Sourced Chinese Instruction-Following Large Language Models},
   author={Jiao, Fangkai and Ding, Bosheng and Luo, Tianze and Mo, Zhanfeng},
@@ -49,7 +50,7 @@
   year={2023},
   url={https://arxiv.org/pdf/2305.03025.pdf}
 }
-
+```
 
 
 <h2 id="model">项目内容</h2>
