@@ -146,7 +146,7 @@ HYDRA_FULL_ERROR=1 deepspeed --include localhost:0,1,2,3,4,5,6,7 trainer_base_ds
 ### Baseline
 
 - [BELLE-LLaMA-Ext-7B](https://github.com/LianjiaTech/BELLE)
-- [Linly-Chinese-LLaMA-7b-hf](https://github.com/CVI-SZU/Linly) (Huggingface weights of chat-based model in 7B size are not released now. Corresponding results will be updated after weights are released)
+- [Linly-Chinese-LLaMA-7b-hf](https://github.com/CVI-SZU/Linly) (Hugging Face weights of chat-based model in 7B size are not released now. Corresponding results will be updated after weights are released)
 
 ### Results
  
