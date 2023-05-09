@@ -35,7 +35,7 @@
 
 <h2 id="news">最近更新</h2>
 
-**2023/05/09**: Panda-13B权重发布。Panda-13B-Instruct开始训练。
+**2023/05/09**: Panda-13B权重发布并更新测评成绩。Panda-13B-Instruct开始训练。
 
 **2023/05/08**: FLAN-LLaMA-7b-10M is released. But the performance is not as good as FLAN-T5-3b. Panda-13B training is over and we will release the weights asap.
 
@@ -76,7 +76,7 @@
 | --------------- | ---------- | -------------------------------------------------------- |
 | Panda-7B        | 7B         | https://huggingface.co/chitanda/llama-panda-zh-7b-delta   |
 | Panda-Instruct-7B | 7B       | https://huggingface.co/chitanda/llama-panda-zh-coig-7b-delta |
-| Panda-13B       | 13B        | https://huggingface.co/chitanda/llama-panda-zh-13b-delta/tree/main                 |
+| Panda-13B       | 13B        | https://huggingface.co/chitanda/llama-panda-zh-13b-delta                 |
 | Panda-Instruct-13B | 13B     | Comming soon |
 | Flan-LLaMA-7B   | 7B         | https://huggingface.co/NTU-NLP-sg/flan-llama-7b-10m-delta  |
 
@@ -121,7 +121,7 @@ conf/llama/zh/llama_7b_zh_instruct_v1_0_ds.yaml
 # LLaMA-7b instruction tuning on COIG
 conf/llama/zh/llama_7b_zh_instruct_coig_sft_v1_0_ds.yaml
 
-# LLaMA-13b pretrain on general Chinese Corpus (Ongoing)
+# LLaMA-13b pretrain on general Chinese Corpus
 conf/llama/zh/llama_13b_zh_instruct_v1_0_ds.yaml
 ```
 
@@ -165,6 +165,7 @@ HYDRA_FULL_ERROR=1 deepspeed --include localhost:0,1,2,3,4,5,6,7 trainer_base_ds
 | Panda-Instruct-7B 3k steps​ (ours)                	| 26.22​ | 39.05​ | 42.11​ |
 | Panda-Instruct-7B 6k steps​ (ours)                  | 30.30​ | 47.14​ | ​56.94​ |
 | Panda-Instruct-7B 9k steps (ours)​           | **31.93**​ | **47.30**​ | **57.04**​ |
+| Panda-13B (Ours)          | 24.72 | **47.94** | 49.71 |
 
 **Notes**
 1. 由于模型对 instruction 的敏感性不同测评结果可能会有较大波动，测评结果仅供参考，并且可能无法完全反应模型之间的优劣。我们对于所有模型采用了最简单的 instruction（可以在对应数据集配置文件中找到）。
