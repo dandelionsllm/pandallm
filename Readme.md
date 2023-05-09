@@ -35,6 +35,8 @@
 
 <h2 id="news">最近更新</h2>
 
+**2023/05/09**: Panda-13B权重发布。Panda-13B-Instruct开始训练。
+
 **2023/05/08**: FLAN-LLaMA-7b-10M is released. But the performance is not as good as FLAN-T5-3b. Panda-13B training is over and we will release the weights asap.
 
 发布了大模型 **Panda** 和 **Flan-LLaMA** 的 technical report！
@@ -74,8 +76,8 @@
 | --------------- | ---------- | -------------------------------------------------------- |
 | Panda-7B        | 7B         | https://huggingface.co/chitanda/llama-panda-zh-7b-delta   |
 | Panda-Instruct-7B | 7B       | https://huggingface.co/chitanda/llama-panda-zh-coig-7b-delta |
-| Panda-13B       | 13B        | Coming soon                 |
-| Panda-Instruct-13B | 13B     |         |
+| Panda-13B       | 13B        | https://huggingface.co/chitanda/llama-panda-zh-13b-delta/tree/main                 |
+| Panda-Instruct-13B | 13B     | Comming soon |
 | Flan-LLaMA-7B   | 7B         | https://huggingface.co/NTU-NLP-sg/flan-llama-7b-10m-delta  |
 
 
