@@ -35,6 +35,8 @@
 
 <h2 id="news">最近更新</h2>
 
+**2023/05/12**: Panda-13B-COIG权重发布，后续将更新测评成绩。我们下一步计划是基于Open-LLaMA预训练可商用的7B规模基础模型，同时引入更多的中文语料。
+
 **2023/05/09**: Panda-13B权重发布并更新测评成绩。Panda-13B-Instruct开始训练。
 
 **2023/05/08**: FLAN-LLaMA-7b-10M is released. But the performance is not as good as FLAN-T5-3b. Panda-13B training is over and we will release the weights asap.
@@ -77,7 +79,7 @@
 | Panda-7B        | 7B         | https://huggingface.co/chitanda/llama-panda-zh-7b-delta   |
 | Panda-Instruct-7B | 7B       | https://huggingface.co/chitanda/llama-panda-zh-coig-7b-delta |
 | Panda-13B       | 13B        | https://huggingface.co/chitanda/llama-panda-zh-13b-delta                 |
-| Panda-Instruct-13B | 13B     | Comming soon |
+| Panda-Instruct-13B | 13B     | [https://huggingface.co/chitanda/llama-panda-zh-13b-coig-delta](https://huggingface.co/chitanda/llama-panda-zh-13b-coig-delta) |
 | Flan-LLaMA-7B   | 7B         | https://huggingface.co/NTU-NLP-sg/flan-llama-7b-10m-delta  |
 
 
