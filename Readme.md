@@ -205,7 +205,7 @@ Chengwei Qin
 
 Bosheng Ding
 
-<h2 id="acknowledge"> Project Admin & Support</h2>
+<h2 id="acknowledge"> 项目运营助理</h2>
 
 Haichao Yu
 
