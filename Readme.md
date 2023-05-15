@@ -205,6 +205,10 @@ Chengwei Qin
 
 Bosheng Ding
 
+<h2 id="acknowledge"> Project Admin & Support</h2>
+
+Haichao Yu
+
 <h2 id="acknowledge"> 联系我们</h2>
 
 dandelionsllm@gmail.com
