@@ -70,6 +70,7 @@ def split_files(model_path, tmp_path, split_size):
 
 
 def apply_delta_low_cpu_mem(base_model_path, target_model_path, delta_path):
+    """ Low CPU and memory usage version of apply_delta. """
     delta_tokenizer = AutoTokenizer.from_pretrained(delta_path, use_fast=False)
     delta_config = AutoConfig.from_pretrained(delta_path)
 
