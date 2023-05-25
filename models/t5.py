@@ -1,6 +1,5 @@
 from abc import ABC
 from typing import Optional, Tuple, Union, Dict
-
 import torch
 from nltk import word_tokenize
 from nltk.translate.bleu_score import sentence_bleu
@@ -12,7 +11,6 @@ from transformers.models.t5.modeling_t5 import (
     Seq2SeqLMOutput, T5ForConditionalGeneration, BaseModelOutput
 )
 from transformers.models.t5.tokenization_t5 import T5Tokenizer
-
 from general_util.logger import get_child_logger
 from general_util.mixin import LogMixin
 from modules import layers

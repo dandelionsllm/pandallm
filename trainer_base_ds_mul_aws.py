@@ -295,6 +295,7 @@ def train(cfg, model, tokenizer, continue_from_global_step=0):
 
 @hydra.main(config_path="conf", config_name="config", version_base="1.2")
 def main(cfg: DictConfig):
+    """ Main function """
     if "LOCAL_RANK" in os.environ and os.environ["LOCAL_RANK"] != -1:
         cfg.local_rank = int(os.environ["LOCAL_RANK"])
     if "WORLD_SIZE" in os.environ and os.environ["WORLD_SIZE"]:

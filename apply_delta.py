@@ -70,6 +70,7 @@ def split_files(model_path, tmp_path, split_size):
 
 
 def apply_delta_low_cpu_mem(base_model_path, target_model_path, delta_path):
+    """ Low CPU and memory usage version of apply_delta. """
     delta_tokenizer = AutoTokenizer.from_pretrained(delta_path, use_fast=False)
     delta_config = AutoConfig.from_pretrained(delta_path)
 
@@ -130,21 +131,27 @@ def apply_delta(base_model_path, target_model_path, delta_path):
     print(f"Loading the delta weights from {delta_path}")
     delta_tokenizer = AutoTokenizer.from_pretrained(delta_path, use_fast=False)
     delta = AutoModelForCausalLM.from_pretrained(
-        delta_path, torch_dtype=torch.float16, low_cpu_mem_usage=True
+        delta_path, low_cpu_mem_usage=True
     )
 
     print(f"Loading the base model from {base_model_path}")
     base = AutoModelForCausalLM.from_pretrained(
-        base_model_path, torch_dtype=torch.float16, low_cpu_mem_usage=True
+        base_model_path, low_cpu_mem_usage=True
     )
 
     print("Applying the delta")
-    for name, param in tqdm(base.state_dict().items(), desc="Applying delta"):
-        assert name in delta.state_dict()
-        param.data += delta.state_dict()[name]
+    for name, param in tqdm(delta.state_dict().items(), desc="Applying delta"):
+        assert name in base.state_dict()
+        # param.data += delta.state_dict()[name]
+        if "embed_tokens" in name or "lm_head.weight" in name:
+            continue
+        else:
+            param.data += base.state_dict()[name]
+    # base.model.embed_tokens = delta.model.embed_tokens
+    # base.lm_head.weight = delta.lm_head.weight
 
     print(f"Saving the target model to {target_model_path}")
-    base.save_pretrained(target_model_path)
+    delta.save_pretrained(target_model_path)
     delta_tokenizer.save_pretrained(target_model_path)
 
 

@@ -29,11 +29,9 @@ LORA_TARGET_MODULES = [
 
 PAD_TOKEN_ID = 32000
 
-
 def deepspeed_inference_policy():
     injection_policy = {LlamaDecoderLayer: ('self_attn.o_proj', 'mlp.down_proj')}
     return injection_policy
-
 
 @dataclass
 class MultipleChoicePreTrainModelOutput(SequenceClassifierOutputWithPast):

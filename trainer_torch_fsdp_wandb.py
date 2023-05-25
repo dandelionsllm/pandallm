@@ -293,6 +293,7 @@ def train(cfg, train_dataset, model, tokenizer, continue_from_global_step=0):
 
 @hydra.main(config_path="conf", config_name="config", version_base="1.2")
 def main(cfg: DictConfig):
+    """ Main function """
     if hasattr(cfg, "dist_init"):
         hydra.utils.instantiate(cfg.dist_init, cfg)
     else:

@@ -1,10 +1,8 @@
 import collections
 from typing import Dict, List, Any, Union, Tuple
-
 import torch
 from torch import distributed as dist
 from transformers.models.t5.modeling_t5 import Seq2SeqModelOutput
-
 from general_util.logger import get_child_logger
 from general_util.mixin import DistGatherMixin
 
