@@ -74,7 +74,7 @@
 [//]: # (详见Flan_Lamma/train。模型训练样本基于Flan 数据集。我们集成了Deepspeed，支持模型pretrain，finetune，lora &#40;后续推出&#41;，distillation &#40;后续推出&#41;)
 
 模型版本：
-
+不可商用
 
 |  模型名称      | 模型大小 | 下载链接                                            |
 | --------------- | ---------- | -------------------------------------------------------- |
@@ -82,9 +82,13 @@
 | Panda-Instruct-7B | 7B       | https://huggingface.co/chitanda/llama-panda-zh-coig-7b-delta |
 | Panda-13B       | 13B        | https://huggingface.co/chitanda/llama-panda-zh-13b-delta                 |
 | Panda-Instruct-13B | 13B     | [https://huggingface.co/chitanda/llama-panda-zh-13b-coig-delta](https://huggingface.co/chitanda/llama-panda-zh-13b-coig-delta) |
-| Panda-OpenLLaMA-7B | 7B      | [https://huggingface.co/chitanda/panda-7b-open-llama-preview-300pt](https://huggingface.co/chitanda/panda-7b-open-llama-preview-300pt) |
 | Flan-LLaMA-7B   | 7B         | https://huggingface.co/NTU-NLP-sg/flan-llama-7b-10m-delta  |
 
+可商用（OpenPandaLLM系列)
+
+|  模型名称      | 模型大小 | 下载链接                                            |
+| --------------- | ---------- | -------------------------------------------------------- |
+| Panda-OpenLLaMA-7B | 7B      | [https://huggingface.co/chitanda/panda-7b-open-llama-preview-300pt](https://huggingface.co/chitanda/panda-7b-open-llama-preview-300pt) |
 
 **Notes**: 
 1. 因为 LLaMA 权重 License 的存在，我们无法直接发布完整的模型权重，因此我们放出了训练后模型的权重与原始 LLaMA 权重的差，保证能够获得 LLaMA 权重的用户能够同样使用这些模型。我们提供了一个[脚本](https://github.com/dandelionsllm/pandallm/blob/main/apply_delta.py)来帮助转换。  
