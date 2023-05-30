@@ -74,6 +74,7 @@
 [//]: # (详见Flan_Lamma/train。模型训练样本基于Flan 数据集。我们集成了Deepspeed，支持模型pretrain，finetune，lora &#40;后续推出&#41;，distillation &#40;后续推出&#41;)
 
 模型版本：
+
 不可商用
 
 |  模型名称      | 模型大小 | 下载链接                                            |
