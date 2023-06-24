@@ -35,6 +35,8 @@
 
 <h2 id="news">最近更新</h2>
 
+**2023/06/24**: Panda-13B-Chat权重发布。推理优化，会尽快上线新的体验页面。
+
 **2023/06/12**: Panda-13B-Chat目前可以在[t.me/PandaLLMChat_bot](https://t.me/PandaLLMChat_bot)体验。需要代理和Telegram。目前训练还未完成，我们会在训练完成后尽快发布权重。
 
 **2023/05/28**: 使用可商用License的Open-LLaMA-Preview-300BT的模型进行中文持续训练的模型已经放出。目前我们正在准备相关的测评数据集以及工具，在完成后会统一进行测评。发布可商用Licence模型的初衷是尽可能规避限制，同时从中文可迁移性的角度上对现有的无限制开源LLaMA模型进行评估。我们的下一步目标是基于现有的Instruction tuning数据和Panda-13B训练一个更好的Chat模型，以满足个人开发者的需求。目前30B模型训练暂时存在一定困难（时间较长，预计迁移过程需要一个月），我们会积极寻找解决方案（包括尝试募集更多的资源，寻找其他合适的底座模型，以及评估LoRA在基础迁移上的性能等）。
@@ -86,6 +88,7 @@
 | Panda-13B       | 13B        | https://huggingface.co/chitanda/llama-panda-zh-13b-delta                 |
 | Panda-Instruct-13B | 13B     | [https://huggingface.co/chitanda/llama-panda-zh-13b-coig-delta](https://huggingface.co/chitanda/llama-panda-zh-13b-coig-delta) |
 | Flan-LLaMA-7B   | 7B         | https://huggingface.co/NTU-NLP-sg/flan-llama-7b-10m-delta  |
+| Panda-13B-Chat  | 13B        | [https://huggingface.co/chitanda/llama-panda-13b-zh-wudao-chat-delta](https://huggingface.co/chitanda/llama-panda-13b-zh-wudao-chat-delta) |
 
 可商用（OpenPandaLLM系列)
 
