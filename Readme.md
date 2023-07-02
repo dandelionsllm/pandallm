@@ -35,6 +35,8 @@
 
 <h2 id="news">最近更新</h2>
 
+**2023/07/02**: 我们开源了一个LLaMA的流水线并行的[原型库](https://github.com/SparkJiao/llama-pipeline-parallel)，目的是为了解决开源社区内基于DeepSpeed和Pytorch训练超过30B模型的训练方案缺失的问题。我们目前能够在单节点和双节电商训练65B的模型。我们会以此为起点尝试训练33B模型。欢迎训练过程中遇到问题的[讨论](https://github.com/SparkJiao/llama-pipeline-parallel/discussions)。
+
 **2023/06/24**: Panda-13B-Chat权重发布。推理优化，会尽快上线新的体验页面。
 
 **2023/06/12**: Panda-13B-Chat目前可以在[t.me/PandaLLMChat_bot](https://t.me/PandaLLMChat_bot)体验。需要代理和Telegram。目前训练还未完成，我们会在训练完成后尽快发布权重。
