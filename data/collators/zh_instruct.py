@@ -2,9 +2,11 @@ import json
 import random
 from glob import glob
 from tqdm import tqdm
+import gzip
 
 from torch.utils.data import Dataset
 from transformers import PreTrainedTokenizer
+from typing import List
 
 from general_util.logger import get_child_logger
 
@@ -19,6 +21,70 @@ def filter_train(file_path):
             continue
         new_files.append(file)
     return sorted(new_files)
+
+
+def unified_conversion(file):
+    all_data = []
+    if 'coig_data.json' in file:
+        data = json.load(open(file, 'r'))
+        for item in data:
+            if isinstance(item, list):
+                history = ""
+                for turn_id, turn in enumerate(item):
+                    all_data.append({
+                        "inputs": history + "\n\n" + turn["inputs"],
+                        "targets": turn["targets"],
+                    })
+                    if turn_id == 0:
+                        history += turn["inputs"] + "\n\n" + turn["targets"]
+                    else:
+                        history += "\n\n" + turn["inputs"] + "\n\n" + turn["targets"]
+            else:
+                all_data.append(item)
+    elif "WuDaoCorpus" in file:
+        data = json.load(open(file, "r"))
+        for item in data:
+            all_data.append({
+                "inputs": "",
+                "targets": item["title"] + " " + item["content"],
+            })
+    elif "c4" in file:
+        with gzip.open(file, "rb") as f:
+            for line in f:
+                item = json.loads(line)
+                all_data.append({
+                    "inputs": "",
+                    "targets": item["text"],
+                })
+    else:
+        with open(file, 'r') as f:
+            lines = f.readlines()
+            for line in lines:
+                if line[-1] == '\n':
+                    line = line[:-1]
+
+                item = json.loads(line)
+                if "text" in item and item["text"].strip():
+                    all_data.append({
+                        "inputs": " ",
+                        "targets": item["text"],
+                    })
+                else:
+                    inputs = ""
+                    if "instruction" in item:
+                        if isinstance(item["instruction"], list):
+                            inputs += random.choice(item["instruction"])
+                        else:
+                            inputs += item["instruction"]
+                    if "input" in item:
+                        inputs += " " + item["input"]
+                    if not item["output"].strip():
+                        continue
+                    all_data.append({
+                        "inputs": inputs,
+                        "targets": item["output"],
+                    })
+    return all_data
 
 
 class TextDataset(Dataset):

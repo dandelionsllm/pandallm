@@ -16,7 +16,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import datetime
 import glob
 import logging
 import os
@@ -163,7 +163,8 @@ def train(cfg, model, tokenizer, continue_from_global_step=0):
     num_warmup_steps = int(t_total * cfg.warmup_proportion) if cfg.warmup_proportion else cfg.warmup_steps
 
     ds_config = cfg.ds_cfg
-    ds_config.scheduler.params.total_num_steps = t_total
+    if "total_num_steps" in ds_config.scheduler.params:
+        ds_config.scheduler.params.total_num_steps = t_total
     ds_config.scheduler.params.warmup_num_steps = num_warmup_steps
     ds_config = OmegaConf.to_container(ds_config, resolve=True)
 
@@ -309,7 +310,7 @@ def main(cfg: DictConfig):
     else:  # Initializes the distributed backend which will take care of synchronizing nodes/GPUs
         torch.cuda.set_device(cfg.local_rank)
         device = str(torch.device("cuda", cfg.local_rank))
-        deepspeed.init_distributed()
+        deepspeed.init_distributed(timeout=datetime.timedelta(seconds=10800))
         cfg.n_gpu = 1
         cfg.world_size = dist.get_world_size()
     cfg.device = device
@@ -430,6 +431,8 @@ def main(cfg: DictConfig):
 
 
 if __name__ == "__main__":
+    os.environ["HYDRA_FULL_ERROR"] = "1"
+
     hydra_formatted_args = []
     # convert the cli params added by torch.distributed.launch into Hydra format
     for arg in sys.argv:

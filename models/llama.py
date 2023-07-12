@@ -3,6 +3,8 @@ from abc import ABC
 from dataclasses import dataclass
 from typing import Optional, List, Tuple, Union
 
+import bitsandbytes as bnb
+import hydra.utils
 import omegaconf
 import torch
 from peft import (
@@ -10,8 +12,9 @@ from peft import (
     get_peft_model,
     TaskType,
     PeftModel,
-    prepare_model_for_int8_training
+    prepare_model_for_kbit_training,
 )
+from peft.tuners.lora import LoraLayer
 from torch import nn
 from transformers.models.llama.modeling_llama import LlamaModel, LlamaPreTrainedModel, LlamaConfig, SequenceClassifierOutputWithPast, \
     LlamaDecoderLayer
@@ -29,9 +32,31 @@ LORA_TARGET_MODULES = [
 
 PAD_TOKEN_ID = 32000
 
-def deepspeed_inference_policy():
-    injection_policy = {LlamaDecoderLayer: ('self_attn.o_proj', 'mlp.down_proj')}
-    return injection_policy
+
+def find_all_linear_names(model, bits: int):
+    cls = bnb.nn.Linear4bit if bits == 4 else (bnb.nn.Linear8bitLt if bits == 8 else torch.nn.Linear)
+    lora_module_names = set()
+    for name, module in model.named_modules():
+        if isinstance(module, cls):
+            names = name.split('.')
+            lora_module_names.add(names[0] if len(names) == 1 else names[-1])
+
+    if 'lm_head' in lora_module_names:  # needed for 16-bit
+        lora_module_names.remove('lm_head')
+    return list(lora_module_names)
+
+
+def return_single_device_map():
+    return {"": "cuda:" + str(int(os.environ.get("LOCAL_RANK") or 0))}
+
+
+def return_cpu_device_map():
+    return {"": "cpu"}
+
+
+def return_single_device_map_emb():
+    return {"embed_tokens": "cuda:" + str(int(os.environ.get("LOCAL_RANK") or 0)), "": "cpu"}
+
 
 @dataclass
 class MultipleChoicePreTrainModelOutput(SequenceClassifierOutputWithPast):
@@ -48,6 +73,7 @@ class MultipleChoicePreTrainModelOutput(SequenceClassifierOutputWithPast):
     rel_ctr_loss: torch.FloatTensor = None
     local_ctr_loss: torch.FloatTensor = None
     local_ctr_acc: torch.FloatTensor = None
+    original_logits: torch.FloatTensor = None
 
 
 class LlamaPreTrainedModelPeftMixin(LlamaPreTrainedModel, ABC):
@@ -62,36 +88,61 @@ class LlamaPreTrainedModelPeftMixin(LlamaPreTrainedModel, ABC):
             pad_token_id = None
 
         use_peft = kwargs.pop("use_peft", False)
-        if not use_peft:
-            model = super().from_pretrained(pretrained_model_name_or_path, *model_args, **kwargs)
-        else:
-            lora_config = kwargs.pop("lora_config", None)
-            if lora_config is None:
-                lora_config = LoraConfig(task_type=TaskType.SEQ_CLS, inference_mode=False, r=8, lora_alpha=32, lora_dropout=0.1)
+        lora_config = kwargs.pop("lora_config", None)
+        load_in_8bit = kwargs.pop("load_in_8bit", False)
+        load_in_4bit = kwargs.pop("load_in_4bit", False)
 
-            logger.info(f"LORA Config: {lora_config}")
-            logger.info(lora_config.target_modules.__class__)
-            if isinstance(lora_config.target_modules, omegaconf.listconfig.ListConfig):
-                lora_config.target_modules = list(lora_config.target_modules)
-            logger.info(lora_config.target_modules.__class__)
-
-            model = super().from_pretrained(pretrained_model_name_or_path, *model_args, **kwargs)
-
-            load_in_8bit = kwargs.pop("load_in_8bit", False)
-            if load_in_8bit:
-                model = prepare_model_for_int8_training(model, use_gradient_checkpointing=False)
-            model = get_peft_model(model, lora_config)
-
-            if hasattr(model, "get_cls_head"):
-                for param in model.get_cls_head().parameters():
-                    param.requires_grad = True
-
-            model.print_trainable_parameters()
+        model = super().from_pretrained(pretrained_model_name_or_path, *model_args, **kwargs)
 
         if vocab_size is not None and pad_token_id is not None:
             assert vocab_size == model.config.vocab_size + 1, "Currently, only hack here to add pad token id is supported. "
             model.resize_token_embeddings(vocab_size)
             model.config.pad_token_id = pad_token_id
+
+        if use_peft:
+            if lora_config is None:
+                lora_config = LoraConfig(task_type=TaskType.SEQ_CLS, inference_mode=False, r=8, lora_alpha=32, lora_dropout=0.1)
+
+            # logger.info(*model_args)
+            # logger.info(kwargs)
+            logger.info(lora_config)
+            model = super().from_pretrained(pretrained_model_name_or_path, *model_args, **kwargs)
+
+            if vocab_size is not None and pad_token_id is not None:
+                assert vocab_size == model.config.vocab_size + 1, "Currently, only hack here to add pad token id is supported. "
+                model.resize_token_embeddings(vocab_size)
+                model.config.pad_token_id = pad_token_id
+
+            logger.info(f"LORA Config: {lora_config}")
+            logger.info(lora_config.target_modules.__class__)
+            if isinstance(lora_config.target_modules, omegaconf.listconfig.ListConfig):
+                lora_config.target_modules = list(lora_config.target_modules)
+            elif isinstance(lora_config.target_modules, omegaconf.DictConfig):
+                lora_config.target_modules = hydra.utils.instantiate(lora_config.target_modules, model=model)
+            else:
+                raise ValueError(f"Unsupported type of target modules: {lora_config.target_modules.__class__}")
+
+            logger.info(lora_config.target_modules.__class__)
+            logger.info(lora_config.target_modules)
+            gradient_checkpointing = model.model.gradient_checkpointing
+            if load_in_8bit or load_in_4bit:
+                # model = prepare_model_for_int8_training(model, use_gradient_checkpointing=gradient_checkpointing)
+                model = prepare_model_for_kbit_training(model, use_gradient_checkpointing=gradient_checkpointing)
+            model = get_peft_model(model, lora_config)
+
+            compute_dtype = kwargs["torch_dtype"]
+            for name, module in model.named_modules():
+                if isinstance(module, LoraLayer):
+                    if compute_dtype == torch.bfloat16:
+                        module = module.to(torch.bfloat16)
+                if 'norm' in name:
+                    module = module.to(torch.float32)
+                if 'lm_head' in name or 'embed_tokens' in name:
+                    if hasattr(module, 'weight'):
+                        if compute_dtype and module.weight.dtype == torch.float32:
+                            module = module.to(torch.bfloat16)
+
+            model.print_trainable_parameters()
 
         logger.info(f"Config pad token id after loading pre-trained weights: {model.config.pad_token_id}")
 
@@ -102,7 +153,7 @@ class LlamaPreTrainedModelPeftMixin(LlamaPreTrainedModel, ABC):
         base_model_name_or_path = kwargs.pop("base_model_name_or_path", pretrained_model_name_or_path)
 
         model = super().from_pretrained(base_model_name_or_path, *model_args, **kwargs)
-        model = PeftModel.from_pretrained(model, pretrained_model_name_or_path)
+        model = PeftModel.from_pretrained(model, pretrained_model_name_or_path, *model_args, **kwargs)
         return model
 
 
@@ -204,7 +255,7 @@ class LlamaForMultipleChoiceCLS(LlamaPreTrainedModelPeftMixin, LogMixin, ABC):
 class LlamaForMultipleChoiceCausalLM(LlamaPreTrainedModelPeftMixin, LogMixin, ABC):
     _keys_to_ignore_on_load_missing = [r"lm_head.weight"]
 
-    def __init__(self, config: LlamaConfig, add_lm_loss: bool = False, add_pad_token_id: bool = False):
+    def __init__(self, config: LlamaConfig, add_lm_loss: bool = False):
         super().__init__(config)
         self.model = LlamaModel(config)
 
@@ -444,7 +495,10 @@ class LlamaForConditionalGeneration(LlamaPreTrainedModelPeftMixin, LogMixin, ABC
         super().__init__(config)
         self.model = LlamaModel(config)
         # set gradient checkpointing
-        self.model.gradient_checkpointing = gradient_checkpointing
+        # self.model.gradient_checkpointing = gradient_checkpointing
+        if gradient_checkpointing:
+            self.config.use_cache = False
+            self.gradient_checkpointing_enable()
         logger.info(f"gradient_checkpointing: {gradient_checkpointing}")
 
         self.lm_head = nn.Linear(config.hidden_size, config.vocab_size, bias=False)
@@ -485,6 +539,7 @@ class LlamaForConditionalGeneration(LlamaPreTrainedModelPeftMixin, LogMixin, ABC
             output_attentions: Optional[bool] = None,
             output_hidden_states: Optional[bool] = None,
             return_dict: Optional[bool] = None,
+            **kwargs,
     ) -> Union[Tuple, MultipleChoicePreTrainModelOutput]:
 
         output_attentions = output_attentions if output_attentions is not None else self.config.output_attentions
@@ -524,6 +579,9 @@ class LlamaForConditionalGeneration(LlamaPreTrainedModelPeftMixin, LogMixin, ABC
         lm_labels = input_ids.masked_fill(~label_mask, -1).contiguous()
         shifted_lm_labels = lm_labels[..., 1:].contiguous()
 
+        if shifted_logits.device != shifted_lm_labels.device:
+            shifted_logits = shifted_logits.to(shifted_lm_labels.device)
+
         # loss = 0.
         # if labels is not None:
         loss_fct = nn.CrossEntropyLoss(ignore_index=-1)
@@ -536,6 +594,14 @@ class LlamaForConditionalGeneration(LlamaPreTrainedModelPeftMixin, LogMixin, ABC
             self.eval_metrics.update("acc", val=acc, n=true_label_num)
             self.eval_metrics.update("loss", val=loss.item(), n=true_label_num)
 
+            score_loss_fct = nn.CrossEntropyLoss(ignore_index=-1, reduction="none")
+            score_loss = score_loss_fct(shifted_logits.view(-1, logits.size(-1)), shifted_lm_labels.view(-1))
+            score_loss = score_loss.reshape(batch_size, -1)
+            score_loss = score_loss.sum(dim=-1) / label_mask.sum(dim=-1).float()
+            return MultipleChoicePreTrainModelOutput(
+                loss=loss,
+                logits=-score_loss,
+            )
         return MultipleChoicePreTrainModelOutput(
             loss=loss,
             logits=shifted_logits,
@@ -568,3 +634,132 @@ class LlamaForConditionalGeneration(LlamaPreTrainedModelPeftMixin, LogMixin, ABC
         for layer_past in past_key_values:
             reordered_past += (tuple(past_state.index_select(0, beam_idx) for past_state in layer_past),)
         return reordered_past
+
+
+class LlamaForConditionalGenerationFlan(LlamaForConditionalGeneration, LogMixin, ABC):
+    def __init__(self, config: LlamaConfig, gradient_checkpointing=False, merit_ratio: float = 0.5):
+        super().__init__(config, gradient_checkpointing)
+        self.merit_ratio = merit_ratio
+
+    def forward(
+            self,
+            input_ids: torch.LongTensor = None,
+            attention_mask: Optional[torch.Tensor] = None,
+            token_type_ids: Optional[torch.Tensor] = None,
+            input_lens: Optional[torch.Tensor] = None,
+            past_key_values: Optional[List[torch.FloatTensor]] = None,
+            inputs_embeds: Optional[torch.FloatTensor] = None,
+            labels: Optional[torch.LongTensor] = None,
+            flan_input_ids: Optional[torch.LongTensor] = None,
+            flan_attention_mask: Optional[torch.FloatTensor] = None,
+            flan_token_type_ids: Optional[torch.LongTensor] = None,
+            flan_input_lens: Optional[torch.LongTensor] = None,
+            use_cache: Optional[bool] = None,
+            output_attentions: Optional[bool] = None,
+            output_hidden_states: Optional[bool] = None,
+            return_dict: Optional[bool] = None,
+    ) -> Union[Tuple, MultipleChoicePreTrainModelOutput]:
+        return_dict = return_dict if return_dict is not None else self.config.use_return_dict
+
+        outputs1 = super().forward(input_ids=input_ids,
+                                   attention_mask=attention_mask,
+                                   input_lens=input_lens,
+                                   return_dict=return_dict)
+        outputs2 = super().forward(input_ids=flan_input_ids,
+                                   attention_mask=flan_attention_mask,
+                                   input_lens=flan_input_lens,
+                                   return_dict=return_dict)
+        # if torch.isnan(outputs1.loss):
+        #     print("Normal inputs NAN loss")
+        # if torch.isnan(outputs2.loss):
+        #     print("Flan inputs NAN loss")
+
+        # loss = (outputs1.loss + outputs2.loss) / 2
+        loss = self.merit_ratio * outputs1.loss + (1 - self.merit_ratio) * outputs2.loss
+
+        return MultipleChoicePreTrainModelOutput(
+            loss=loss,
+            mlm_loss=outputs1.loss,
+            logits=outputs1.logits,
+        )
+
+
+def mask_according_lens(input_ids, input_lens, pad_token_id):
+    label_mask = input_ids.ne(pad_token_id)
+    # keep only logits after the end of the condition part in each item of the batch
+    # [batch_size * num_choices, input_lens]
+    lens_mask = torch.arange(input_ids.size(1), device=label_mask.device)[None, :] >= input_lens[:, None]
+    label_mask = label_mask & lens_mask
+    return label_mask
+
+
+def token_wise_ctr_forward(
+        model: LlamaModel,
+        linear_layer: nn.Module,
+        input_ids: torch.Tensor = None,
+        attention_mask: Optional[torch.Tensor] = None,
+        input_lens: Optional[torch.Tensor] = None,
+        pad_token_id: int = 0,
+):
+    batch_size, num_choice = input_ids.size()[:2]
+    input_ids = fold_tensor(input_ids)
+    attention_mask = fold_tensor(attention_mask)
+
+    outputs = model(input_ids=input_ids,
+                    attention_mask=attention_mask,
+                    return_dict=True)
+
+    hidden_states = outputs[0]
+    label_mask = mask_according_lens(input_ids, input_lens, pad_token_id)
+    # [batch_size * num_choices, seq_len]
+    token_logits = linear_layer(hidden_states).squeeze(-1)
+    logits = token_logits.masked_fill(~label_mask, 0).sum(dim=1) / label_mask.sum(dim=1)
+    logits = logits.view(batch_size, num_choice)
+    return logits
+
+
+class LlamaCtrAndLMPretrain(LlamaForConditionalGeneration, ABC):
+    def __init__(self, config: LlamaConfig, gradient_checkpointing=False):
+        super().__init__(config, gradient_checkpointing)
+
+        self.linear = nn.Linear(config.hidden_size, 1)
+        self.init_metric("loss", "acc", "cls_loss")
+
+    def forward(
+            self,
+            input_ids: torch.LongTensor = None,
+            attention_mask: Optional[torch.Tensor] = None,
+            token_type_ids: Optional[torch.Tensor] = None,
+            input_lens: Optional[torch.Tensor] = None,
+            past_key_values: Optional[List[torch.FloatTensor]] = None,
+            inputs_embeds: Optional[torch.FloatTensor] = None,
+            labels: Optional[torch.LongTensor] = None,
+            flan_input_ids: Optional[torch.LongTensor] = None,
+            flan_attention_mask: Optional[torch.FloatTensor] = None,
+            flan_token_type_ids: Optional[torch.LongTensor] = None,
+            flan_input_lens: Optional[torch.LongTensor] = None,
+            use_cache: Optional[bool] = None,
+            output_attentions: Optional[bool] = None,
+            output_hidden_states: Optional[bool] = None,
+            return_dict: Optional[bool] = None,
+    ) -> Union[Tuple, MultipleChoicePreTrainModelOutput]:
+        return_dict = return_dict if return_dict is not None else self.config.use_return_dict
+
+        ctr_logits = token_wise_ctr_forward(self.model, self.linear, input_ids, attention_mask, input_lens, self.config.pad_token_id)
+        ctr_loss = nn.CrossEntropyLoss()(ctr_logits, labels)
+
+        lm_outputs = super().forward(input_ids=flan_input_ids,
+                                     attention_mask=flan_attention_mask,
+                                     input_lens=flan_input_lens,
+                                     return_dict=return_dict)
+        lm_loss = lm_outputs.loss
+        loss = ctr_loss + lm_loss
+
+        ctr_acc = get_accuracy(ctr_logits, labels)
+        return MultipleChoicePreTrainModelOutput(
+            loss=loss,
+            logits=ctr_logits,
+            mlm_loss=lm_loss,
+            cls_loss=ctr_loss,
+            cls_acc=ctr_acc,
+        )

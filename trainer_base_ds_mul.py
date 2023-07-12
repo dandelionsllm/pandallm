@@ -32,7 +32,6 @@ from omegaconf import DictConfig, OmegaConf
 from torch import distributed as dist
 from torch.utils.data import (DataLoader, RandomSampler)
 from torch.utils.data.distributed import DistributedSampler
-from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm, trange
 from transformers import (AutoTokenizer, PreTrainedTokenizer)
 
@@ -110,6 +109,8 @@ def train(cfg, model, tokenizer, continue_from_global_step=0):
 
     if "_target_" in cfg.train_file:
         files = hydra.utils.instantiate(cfg.train_file)
+    elif cfg.train_file.startswith("hf:"):
+        files = [cfg.train_file[3:]]
     elif os.path.exists(cfg.train_file):
         files = [cfg.train_file]
     else:
@@ -153,7 +154,8 @@ def train(cfg, model, tokenizer, continue_from_global_step=0):
     num_warmup_steps = int(t_total * cfg.warmup_proportion) if cfg.warmup_proportion else cfg.warmup_steps
 
     ds_config = cfg.ds_cfg
-    ds_config.scheduler.params.total_num_steps = t_total
+    if "total_num_steps" in ds_config.scheduler.params:
+        ds_config.scheduler.params.total_num_steps = t_total
     ds_config.scheduler.params.warmup_num_steps = num_warmup_steps
     ds_config = OmegaConf.to_container(ds_config, resolve=True)
 
@@ -164,7 +166,8 @@ def train(cfg, model, tokenizer, continue_from_global_step=0):
     #     {'params': [p for n, p in model.named_parameters() if any(nd in n for nd in no_decay)],
     #      'weight_decay': 0.0}
     # ]
-    torch.compile(model, mode="max-autotune")
+    if torch.__version__ >= "2" and (getattr(os.environ, "TORCH_COMPILE", False) or getattr(cfg, "compile", False)):
+        model = torch.compile(model, mode="max-autotune")
     model, optimizer, _, scheduler = deepspeed.initialize(model=model,
                                                           model_parameters=model.parameters(),
                                                           config=ds_config)
@@ -314,8 +317,9 @@ def main(cfg: DictConfig):
     # Set seed
     set_seed(cfg)
 
+    use_barrier = not os.path.exists(cfg.model_name_or_path)
     # Load pre-trained model and tokenizer
-    if cfg.local_rank not in [-1, 0]:
+    if use_barrier and cfg.local_rank not in [-1, 0]:
         dist.barrier()  # Make sure only the first process in distributed training will download model & vocab
 
     if cfg.pretrain:
@@ -335,7 +339,7 @@ def main(cfg: DictConfig):
         logger.warning(e)
         model = hydra.utils.call(cfg.model)
 
-    if cfg.local_rank == 0:
+    if use_barrier and cfg.local_rank == 0:
         dist.barrier()  # Make sure only the first process in distributed training will download model & vocab
 
     # logger.info("Training/evaluation parameters %s", OmegaConf.to_yaml(cfg))
@@ -421,6 +425,8 @@ def main(cfg: DictConfig):
 
 
 if __name__ == "__main__":
+    os.environ["HYDRA_FULL_ERROR"] = "1"
+
     hydra_formatted_args = []
     # convert the cli params added by torch.distributed.launch into Hydra format
     for arg in sys.argv:
