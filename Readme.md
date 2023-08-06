@@ -16,10 +16,9 @@
 <p align="center">
   <a href="http://pandallm.ai/">在线体验：pandallm.ai (Working in Process)</a>
 </p>
-
+ 
 [![Code License](https://img.shields.io/badge/Code%20License-Apache_2.0-green.svg)](https://github.com/tatsu-lab/stanford_alpaca/blob/main/LICENSE)
 [![Data License](https://img.shields.io/badge/Data%20License-CC%20By%20NC%204.0-red.svg)](https://github.com/tatsu-lab/stanford_alpaca/blob/main/DATA_LICENSE)
-
 </br></br>
 ## 📄 项目介绍
 欢迎来到我们的海外中文大语言模型开源项目 -- Panda！Panda项目于2023年5月启动，旨在大模型时代帮助整个社区探索大模型的整个技术栈。近期，我们对Panda项目进行了升级。目前Panda项目分为三个子项目：1. PandaLLM 2. PandaLLMOPs 3. PandaCommunity。以下是每个子项目的具体介绍：
