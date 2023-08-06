@@ -4,13 +4,17 @@ from dataclasses import dataclass, field
 
 import torch
 import transformers
-from models.mpt.modeling_mpt import MPTConfig
+from transformers.models.llama.modeling_llama import LlamaConfig
+from transformers.models.llama.tokenization_llama import LlamaTokenizer
 
 from general_util.tokenization_utils import expand_special_tokenizer, PreTrainedTokenizer
 
-# add parent dir to path
-import sys
-sys.path.append(str(Path(__file__).parent.parent))
+
+@dataclass
+class Arguments:
+    model_name_or_path: Optional[str] = field(default="/path/to/llama-7b-hf")
+    output_dir: str = field(default="./llama-7B-init-ckpt")
+    mp_world_size: int = field(default=1)
 
 
 def smart_tokenizer_and_embedding_resize(
@@ -37,42 +41,23 @@ def smart_tokenizer_and_embedding_resize(
         output_embeddings[-num_new_tokens:] = output_embeddings_avg
 
 
-@dataclass
-class Arguments:
-    model_name_or_path: Optional[str] = field(default="/path/to/llama-7b-hf")
-    output_dir: str = field(default="./llama-7B-init-ckpt")
-    mp_world_size: int = field(default=1)
-
-
-def write_ckpt(outpath: Path, model: torch.nn.Module, model_config: MPTConfig, mp: int):
+def write_ckpt(outpath: Path, model: torch.nn.Module, model_config: LlamaConfig, mp: int):
     loaded = model.state_dict()
 
-    n_layers = model_config.n_layers
+    n_layers = model_config.num_hidden_layers
     # embedding
-    sd = {}
-    for nm, weight in loaded.items():
-        if nm.startswith("transformer.wte.") or nm.startswith("transformer.wpe."):
-            sd[nm.replace("transformer.", "")] = weight
-    print(sd.keys())
-    assert sd
+    sd = {"weight": loaded['model.embed_tokens.weight']}
     torch.save(sd, outpath / "layer_00-model_00-model_states.pt")
     # norm
-    # sd = {f"weight": loaded['transformer.norm_f.weight']}
-    sd = {}
-    for nm, weight in loaded.items():
-        if nm.startswith("transformer.norm_f."):
-            sd[nm.replace("transformer.", "")] = weight
-    assert sd
-    print(sd.keys())
+    sd = {f"weight": loaded['model.norm.weight']}
     torch.save(sd, outpath / f"layer_{n_layers + 1}-model_00-model_states.pt")
     # lm head
-    sd = {f"wte.weight": loaded['transformer.wte.weight']}
+    sd = {f"weight": loaded['lm_head.weight']}
     torch.save(sd, outpath / f"layer_{n_layers + 2}-model_00-model_states.pt")
     # decoder layers
     for layer_i in range(n_layers):
-        sd = {nm.replace(f"transformer.blocks.{layer_i}.", f""): weight for nm, weight in loaded.items() if
-              nm.startswith(f"transformer.blocks.{layer_i}.")}
-        assert sd
+        sd = {nm.replace(f"model.layers.{layer_i}.", f""): weight for nm, weight in loaded.items() if
+              nm.startswith(f"model.layers.{layer_i}.")}
         torch.save(sd, outpath / f"layer_{layer_i + 1:02d}-model_00-model_states.pt")
 
     model_state = {
@@ -92,11 +77,12 @@ def main():
     parser = transformers.HfArgumentParser((Arguments,))
     args, = parser.parse_args_into_dataclasses()
 
-    tokenizer = transformers.AutoTokenizer.from_pretrained(args.model_name_or_path, trust_remote_code=True)
-    model = transformers.AutoModelForCausalLM.from_pretrained(args.model_name_or_path, trust_remote_code=True)
+    tokenizer: PreTrainedTokenizer = transformers.AutoTokenizer.from_pretrained(args.model_name_or_path)
+    model = transformers.AutoModelForCausalLM.from_pretrained(args.model_name_or_path)
     model_config = model.config
 
     original_vocab_size = model_config.vocab_size
+    tokenizer.add_tokens(["<eot>", "<ext_0>", "<ext_1>", "<ext_2>", "<ext_3>"])
     tokenizer.pad_token = tokenizer.eos_token
     tokenizer.pad_token_id = tokenizer.eos_token_id
     if len(tokenizer) > original_vocab_size:

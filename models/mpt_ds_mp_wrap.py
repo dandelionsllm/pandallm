@@ -184,7 +184,7 @@ class EmbeddingPipeLayer(nn.Module):
 
 
 class ParallelTransformerLayerPipe(MPTBlock):
-    def __init__(self, config: MPTConfig, activation_checkpointing: bool = False):
+    def __init__(self, config: MPTConfig, activation_checkpointing: bool = False, freeze_backbone: bool = False):
         if config.init_device == 'mixed':
             if dist.get_local_rank() == 0:
                 config.init_device = 'cpu'
@@ -203,6 +203,12 @@ class ParallelTransformerLayerPipe(MPTBlock):
         self.prefix_lm = config.attn_config['prefix_lm']
         self.is_causal = not self.prefix_lm
         self.activation_checkpointing = activation_checkpointing
+
+        if freeze_backbone:
+            for name, param in self.named_parameters():
+                if "norm" in name:  # keep some parameters in internal stages so that the parameters to optimizer is not empty.
+                    continue
+                param.requires_grad = False
 
     def forward(self, args):
         if self.activation_checkpointing:
@@ -250,7 +256,7 @@ class ParallelTransformerLayerPipe(MPTBlock):
 
 
 class LayerNormPipe(nn.Module):
-    def __init__(self, config: MPTConfig):
+    def __init__(self, config: MPTConfig, freeze_backbone: bool = False):
         super().__init__()
         if config.init_device == 'mixed':
             if dist.get_local_rank() == 0:
@@ -271,6 +277,10 @@ class LayerNormPipe(nn.Module):
                     if config.verbose:
                         warnings.warn(f'Removing bias ({module.bias}) from {module}.')
                     module.register_parameter('bias', None)
+
+        if freeze_backbone:
+            for param in self.parameters():
+                param.requires_grad = False
 
     def forward(self, args):
         if len(args) == 2:
@@ -298,12 +308,12 @@ class LMHeadPipe(nn.Module):
         return logits
 
 
-def get_layers_from_config(model_config: MPTConfig, activation_checkpointing: bool = False):
+def get_layers_from_config(model_config: MPTConfig, activation_checkpointing: bool = False, freeze_backbone: bool = False):
     layers = [
         TiedLayerSpec("wte", EmbeddingPipeLayer, model_config, tied_weight_attr="weight"),
-        *[LayerSpec(ParallelTransformerLayerPipe, model_config, activation_checkpointing)
+        *[LayerSpec(ParallelTransformerLayerPipe, model_config, activation_checkpointing, freeze_backbone)
           for _ in range(model_config.n_layers)],
-        LayerSpec(LayerNormPipe, model_config),
+        LayerSpec(LayerNormPipe, model_config, freeze_backbone),
         TiedLayerSpec("wte", LMHeadPipe, model_config, tied_weight_attr="weight"),
     ]
     return layers

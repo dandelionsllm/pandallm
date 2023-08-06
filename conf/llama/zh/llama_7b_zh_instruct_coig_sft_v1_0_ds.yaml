@@ -6,15 +6,15 @@ hydra:
 aws_output_bucket:
 data_dir:
 
-train_file: /opt/ml/input/data/train/coig.json
+train_file: /opt/ml/input/data/train/coig_data.json
 dev_file:
 test_file:
 
 # Model
 model:
   _target_: models.llama.LlamaForConditionalGeneration.from_pretrained
-  vocab_size: 32001
-  pad_token_id: 32000
+  # vocab_size: 32001
+  # pad_token_id: 32000
   use_peft: False
   gradient_checkpointing: True
 #  lora_config:
@@ -33,7 +33,7 @@ model:
 
 # Data loading
 read_tensor:
-  _target_: data.collators.zh_instruct.TextDatasetUnify
+  _target_: data.collators.zh_instruct.TextDataset
 
 
 extended_vocab:
@@ -93,7 +93,7 @@ bit_training:
 logging_steps: 1
 #save_best: True
 save_best: False
-save_steps: 250
+save_steps: 50
 eval_steps: 250
 ddp_eval: True
 no_cuda: False

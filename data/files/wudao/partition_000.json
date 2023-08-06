@@ -1,0 +1,7 @@
+[
+  "/opt/ml/input/data/train/baike2018/baike2018qa_train.json",
+  "/opt/ml/input/data/train/news_2016/news2016_train.json",
+  "/opt/ml/input/data/train/translate/translate_train.json",
+  "/opt/ml/input/data/train/webtext/web_text_2019_train.json",
+  "/opt/ml/input/data/train/wikizh/wikizh.json"
+]

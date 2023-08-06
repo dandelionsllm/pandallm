@@ -163,6 +163,8 @@ HYDRA_FULL_ERROR=1 deepspeed --include localhost:0,1,2,3,4,5,6,7 trainer_base_ds
 
 ### PandaLLMOps 工具介绍
 PandaLLMOps是一款开源的大模型训练、推理和部署工具。该工具集成了大模型从训练到推理再到部署的全流程支持。我们致力于为广大大模型开发人员和爱好者提供一套简便易用的工具，以降低学习门槛，提高在大模型开发、推理和部署过程中的效率。
+值得说明的是，我们的出发点并不是为了将已有的开源库重新封装一遍，我们认为这样的形式并不利于普通开发人员/爱好者针对自己的需求快速进行魔改，或者对于企业开发人员在开发过程中引入过多不稳定的包。
+因此本项目中所有的代码都是尽可能以简洁的形式使用原生Pytorch，DeepSpeed，以及Huggingface Transformers使用原型的方式编写，并尽可能的提供说明，方便开发者直接将相关功能移植到自己的项目中去，而无需再次引入一个额外的厚重的第三方包。
 
 目前，PandaLLMOps支持多种场景，包括：
 
@@ -175,16 +177,192 @@ PandaLLMOps是一款开源的大模型训练、推理和部署工具。该工具
 我们希望PandaLLMOps能够为您提供强大而便捷的工具，使您能够更加专注于大模型的开发和创新，为自然语言处理和相关领域带来更加出色的成果。欢迎您加入我们的开源社区，共同推进大模型技术的发展，谢谢！
 
 ### PandaLLMOps预训练示例
-Work in Progress
+
+首先找到本项目下的配置文件：
+```bash
+conf/llama/zh/llama2_13b_zh_v3_0_ds.yaml
+```
+
+该配置文件用于LLaMA2-13B在中文上的迁移预训练。接下来在包含8张80G-A100的节点上运行一下命令：
+
+```bash
+PAD_TOKEN="<unk>" deepspeed --include localhost:0,1,2,3,4,5,6,7 trainer_base_ds_mul.py -cp conf/llama/zh/ -cn llama2_13b_zh_v3_0_ds
+```
+
+如果你在AWS上使用PandaLLMOps，或者希望实时将模型断点文件保存在AWS S3，可以使用`trainer_base_ds_mul_aws.py`替换`trainer_base_ds_mul.py`，在前者中我们调用了`s5cmd`实现数据的云上同步。
+
+#### FAQ
+
+##### `PAD_TOKEN="<unk>"`的环境变量的用途是什么？  
+
+由于LLaMA/LLaMA2没有显式指定pad token，为了方便训练时快速指定，我们做了一部后处理，具体可参考`general_util.tokenization_utils.expand_special_tokenizer`方法。
+
+##### 如何在多节点上计算？    
+
+多节点计算由于不同系统的不同，无法使用统一的脚本调用，因此需要参考DeepSpeed的多节点训练配置以及对应训练系统的文档说明。
+
+##### 我没有8卡A100-80G / 我的显卡配置低于此，如果修改DeepSpeed配置开启不同功能降低显存需求？
+
+在本节使用的配置文件里，你可以通过简单修改配置文件来快速开启某些特性：
+
+- Gradient checkpointing: 设置`model.gradient_checkpointing=True` （默认开启）。
+- DeepSpeed ZeRO-stage: 设置`ds_config.zero_optimization.stage=1/2/3` （默认为1）。
+- DeepSpeed ZeRO Optimizer Offload: `ds_config.zero_optimization`区域中添加如下子配置 （默认开启）：
+  ```yaml
+  zero_optimization:
+    stage: 1
+    ...
+    offload_optimizer:
+      device: cpu
+      pin_memory: True
+  ```
+- DeepSpeed ZeRO-3 Param Offload: 
+  ```yaml
+    zero_optimization:
+      stage: 3
+      ...
+      offload_param:
+        device: cpu
+        pin_memory: True
+  ```
+- 其他DeepSpeed配置：直接在`ds_config`区域添加对应配置即可。
+- 如何开启FlashAttention: 设置`model.enable_flash_attention=True`。有一些不同的选项（如开启原生FlashAttention或直接调用pytorch 2.0相关API，请参考`models.llama.LlamaPreTrainedModelPeftMixin.from_pretrained`方法。目前我们仅支持LLaMA，后续会补充MPT相关实现。
+
+##### 关于DeepSpeed各种ZeRO优化的推荐尝试顺序？
+
+CPU Offload以及Gradient Checkpointing与ZeRO的阶段无关，因此我们建议ZeRO首先尝试Stage-1，然后尝试开启CPU Offload和Gradient Checkpointing，最后尝试Stage-2以及开启上述选项的方案。
+
+我们并不推荐使用ZeRO-3，ZeRO-3本质上已经在做模型并行，且引入了大量的额外通信开销，会导致训练时间显著延长。如果你的数据集非常小可以忍受变长数倍的训练时间，而并不想修改现有的代码，可以使用ZeRO-3以及Param Offload。
+对于其他情况，我们建议使用LoRA/QLoRA（非全参数微调），或者Pipeline Parallelism（全参数微调）。具体可以参考后续的示例。
+
+此外，本项目保留了使用 Tensor Parallel 的可能（由`tensor-parallel` pypi package支持），但考虑到能使用 Tensor Parallel的场景也能够使用 Pipeline Parallelism，因此我们目前没有提供相关的示例和实现。
+
+##### 如何使用自己的数据集？
+
+配置文件中通过`read_tensor_train`调用了我们使用的`torch.nn.utils.Dataset`类，您可以使用任意自己定义的Dataset类来取代这一配置。有关`Hydra`动态调用的相关细节，可以参考我们的Panda Tutorial。
 
 ### PandaLLMOps全参数微调示例
-Work in Progress
+
+几乎所有步骤与预训练阶段没有区别，因此此处仅给出一个微调的配置文件以供参考：
+
+```bash
+conf/llama/zh/llama2_13b_zh_sft_combine_v1_0_ds.yaml
+```
 
 ### PandaLLMOps-Lora示例
-Work in Progress
+
+最简单的调用方式：在模型配置文件中添加如下配置
+
+```yaml
+model:
+  _target_: models.llama.LlamaForConditionalGeneration.from_pretrained
+  use_peft: True
+```
+
+进阶版（指定LoRA Config或者开启QLoRA）：
+
+```yaml
+model:
+  _target_: models.llama.LlamaForConditionalGeneration.from_pretrained
+  use_peft: True
+  lora_config:
+    _recursive_: False
+    _target_: models.llama.LoraConfig
+    task_type: CAUSAL_LM
+    inference_mode: False
+    target_modules:
+      _target_: models.llama.find_all_linear_names
+      bits: 4
+    r: 64
+    lora_alpha: 16
+    lora_dropout: 0.05
+  quantization_config:
+    _target_: transformers.utils.quantization_config.BitsAndBytesConfig
+    load_in_4bit: True
+    bnb_4bit_compute_dtype:
+      _target_: general_util.training_utils.return_torch_dtype
+      dtype: bfloat16
+    bnb_4bit_use_double_quant: True
+    bnb_4bit_quant_type: "nf4"
+  device_map:
+    _target_: models.llama.return_single_device_map
+  load_in_4bit: True
+  max_memory: True
+```
+
+可用的参考Config文件: `conf/llama/wiki/llama_65b_qlora_train_new.yaml`
+
+我们通过集成了原有的`LlamaPreTrainedModel`类来添加各种选项，本质上这些选项与具体的模型结构无关，所以你可以参考相关的代码将其快速移植到其他`transformers`模型上。该重载类可以参考`models.llama.LlamaPreTrainedModelPeftMixin`。
+
 
 ### PandaLLMOps流水线并行示例
-Work in Progress
+
+我们提供了一个MPT-30B的配置文件：
+
+```bash
+conf/mpt/mpt_30b_mp_v1_0.yaml
+```
+
+可通过如下命令启动在8卡A100-80G上的训练：
+
+```bash
+PAD_TOKEN="<unk>" deepspeed --include localhost:0,1,2,3,4,5,6,7 trainer_base_ds_mp.py -cp conf/mpt/ -cn mpt_30b_mp_v1_0
+```
+
+你可以选择通过设置配置文件中的`num_stages=8`（默认设置）来开启纯流水线并行，或者`num_stages=4`来开启4路流水线并行和2路数据并行的混合并行模式。
+
+一些需要注意的Points:
+
+1. 流水线并行需要对原有模型结构进行重封装，因此对于没有包含在本项目中的模型（LLaMA & MPT），需要自行实现，但我们提供了Tutorial帮助你理解我们的代码以及如何自行封装。请参考下面的FAQ。
+2. 由于1，训练不推荐使用原有的Huggingface权重（尽管我们支持了这个方法），因为这样会导致巨大的内存峰值使用（如你无法在内存1T的节点上完成65B以上模型的初始化操作）。我们在Panda Tutorial中介绍了这一问题出现的原因。同时，我们有提供了LLaMA和MPT转换权重的脚本：
+    ```bash
+    convert2ckpt.py  // LLaMA
+    mpt_convert2ckpt.py  // MPT
+    ```
+3. 同样，使用流水线并行训练后的模型权重需要转换为Huggingface权重，可以使用如下脚本：
+    ```bash
+    convert2hf.py // LLaMA
+    ```
+
+
+
+#### FAQ
+
+##### 是否支持LLaMA？
+
+支持。不过目前我们还没有在本项目上训练，相关配置文件可以参考这个[原型库](https://github.com/SparkJiao/llama-pipeline-parallel)并进行修改。或者我们的Panda Tutorial中的Advance Usage。
+
+##### 如何对其他模型结构（如ChatGLM）使用流水线并行？
+
+我们在Panda Tutorial的Advance Usage中提供了一个详细的Tutorial，包含对我们代码中细节的解读，以及如何从零开始封装一个流水线并行的模型。
+
+### PandaLLMOps推理测试示例
+
+此示例主要针对低显存场景下的批量推理（如数据集跑分、标注数据集等），如果需要在线推理，请参考下方的PandaLLMOps部署示例。目前支持通过修改配置文件或者切换入口脚本来实现以下几种推理方式：
+
+#### 量化 (Recommended in Single GPU)
+
+直接在配置文件中设置`model.load_in_8bit=True`或`model.load_in_4bit=True`即可。需注意需要同时设置`device_map`。
+
+#### Naive Model Parallel
+
+直接在配置文件中设置`device_map="auto"`。需要注意此时不能使用分布式的启动方式（如`torchrun`和`deepspeed.launch`），可以使用如下命令：
+
+```bash
+CUDA_VISIBLE_DEVICES=XXX python trainer_base_fsdp_v4.py -cp <config path> -cn <config name>
+```
+
+#### Tensor Parallel (Recommended in Multiple GPU)
+
+不在调用`model.from_pretrained`方法，而是调用`model.from_pretrained_eval_tp`方法。同样需要注意不能使用分布式的启动方式。
+
+#### Tensor Parallel DeepSpeed (DeepSpeed Inference)
+
+```bash
+deepspeed --include localhost:xxx ds_inference.py -cp <config path> -cn <config name>
+```
+
+注：以上几种方法本质上是对模型计算的从新封装，并不影响其本身的用法（区别于VLLM），及你依然可以用原有的模型计算 language modeling loss 或者直接调用`generate`方法。
 
 ### PandaLLMOps部署示例
 Work in Progress

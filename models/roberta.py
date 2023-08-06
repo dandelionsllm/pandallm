@@ -1,6 +1,7 @@
 import copy
 from abc import ABC
 from dataclasses import dataclass
+
 import torch
 from fairscale.nn.checkpoint.checkpoint_activations import checkpoint_wrapper
 from torch import nn, Tensor
@@ -9,11 +10,13 @@ from transformers.modeling_outputs import MultipleChoiceModelOutput
 from transformers.models.roberta.modeling_roberta import RobertaModel, RobertaPreTrainedModel, RobertaConfig, RobertaLMHead, \
     MaskedLMOutput, SequenceClassifierOutput, RobertaEncoder
 from transformers.models.t5.modeling_t5 import T5Stack, T5Config
+
 from general_util.logger import get_child_logger
 from general_util.mixin import LogMixin
 from modules import layers
 
 logger = get_child_logger("RoBERTa")
+
 
 class RobertaForMultipleChoice(RobertaPreTrainedModel, LogMixin, ABC):
     def __init__(self, config: RobertaConfig,
@@ -127,6 +130,7 @@ class SequenceClassificationPreTrainModelOutput(SequenceClassifierOutput):
     mlm_acc: torch.FloatTensor = None
     cls_loss: torch.FloatTensor = None
     cls_acc: torch.FloatTensor = None
+
 
 class RobertaForMultipleChoiceForPreTrain(RobertaPreTrainedModel, LogMixin, ABC):
     _keys_to_ignore_on_load_missing = [r"position_ids"]
@@ -259,6 +263,7 @@ class RobertaForMultipleChoiceForPreTrain(RobertaPreTrainedModel, LogMixin, ABC)
             mlm_loss=mlm_loss,
             cls_loss=cls_loss,
         )
+
 
 class RobertaForSequenceClassificationForPreTrain(RobertaPreTrainedModel, LogMixin, ABC):
     _keys_to_ignore_on_load_missing = [r"position_ids"]

@@ -58,7 +58,7 @@ pretrain:
 
 exp_name: llama.13b.zh_instruct.10M.v1.0.seq1024.w8.adamw.NA100.0430.ds
 exp_notes:
-output_dir: experiments/${exp_name}
+output_dir: /tmp/${exp_name}
 resume:
 
 do_train: True

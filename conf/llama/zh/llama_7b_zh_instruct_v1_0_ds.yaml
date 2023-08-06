@@ -47,7 +47,7 @@ collator:
   decoder_only: True
 
 # Dataloader
-num_workers: 4
+num_workers: 8
 prefetch_factor: 2
 
 do_preprocess: False

@@ -77,7 +77,8 @@ class FlanCollectionGroupDataset(Dataset):
         }
 
 
-def vanilla_seq2seq_convertor(examples, tokenizer: PreTrainedTokenizer, max_seq_length, decoder_only: bool = False):
+def vanilla_seq2seq_convertor(examples, tokenizer: PreTrainedTokenizer, max_seq_length, decoder_only: bool = False,
+                              padding: str = "max_length"):
     inputs = []
     outputs = []
     for exp in examples:
@@ -87,11 +88,11 @@ def vanilla_seq2seq_convertor(examples, tokenizer: PreTrainedTokenizer, max_seq_
         else:
             outputs.append(exp["targets"])
 
-    model_inputs = tokenizer(inputs, text_target=outputs, max_length=max_seq_length, padding="max_length",
+    model_inputs = tokenizer(inputs, text_target=outputs, max_length=max_seq_length, padding=padding,
                              truncation=True, return_tensors="pt")
     if decoder_only:
         input_lens = model_inputs["input_ids"].ne(tokenizer.pad_token_id).sum(dim=1)
-        model_inputs = tokenizer(outputs, max_length=max_seq_length, padding="max_length", truncation=True, return_tensors="pt")
+        model_inputs = tokenizer(outputs, max_length=max_seq_length, padding=padding, truncation=True, return_tensors="pt")
         new_input_lens = model_inputs["input_ids"].ne(tokenizer.pad_token_id).sum(dim=1)
         input_lens = input_lens - input_lens.eq(new_input_lens).to(input_lens.dtype) * (input_lens // 2)
         input_lens = input_lens.to(torch.long)
@@ -103,13 +104,14 @@ def vanilla_seq2seq_convertor(examples, tokenizer: PreTrainedTokenizer, max_seq_
 
 
 class FlanCollatorOverCollator:
-    def __init__(self, collator, tokenizer: str, max_seq_length: int, decoder_only: bool = False,
+    def __init__(self, collator, tokenizer: str, max_seq_length: int, decoder_only: bool = False, padding="max_length",
                  pp_inputs_processor: Callable = None, **kwargs):
         self.collator = collator
         self.tokenizer: PreTrainedTokenizer = AutoTokenizer.from_pretrained(tokenizer, **kwargs)
         expand_special_tokenizer(self.tokenizer)
         self.max_seq_length = max_seq_length
         self.decoder_only = decoder_only
+        self.padding = padding
         self.pp_inputs_processor = pp_inputs_processor
 
     def __call__(self, batch):
@@ -119,11 +121,11 @@ class FlanCollatorOverCollator:
 
         if self.collator is not None:
             model_inputs = self.collator(batch)
-            flan_inputs = vanilla_seq2seq_convertor(flan_batch, self.tokenizer, self.max_seq_length, self.decoder_only)
+            flan_inputs = vanilla_seq2seq_convertor(flan_batch, self.tokenizer, self.max_seq_length, self.decoder_only, self.padding)
             for k, v in flan_inputs.items():
                 model_inputs[f"flan_{k}"] = v
         else:
-            model_inputs = vanilla_seq2seq_convertor(flan_batch, self.tokenizer, self.max_seq_length, self.decoder_only)
+            model_inputs = vanilla_seq2seq_convertor(flan_batch, self.tokenizer, self.max_seq_length, self.decoder_only, self.padding)
 
         if self.pp_inputs_processor is not None:
             return self.pp_inputs_processor(model_inputs, self.tokenizer)
@@ -132,18 +134,19 @@ class FlanCollatorOverCollator:
 
 
 class CombineCollator:
-    def __init__(self, tokenizer: str, max_seq_length: int, decoder_only: bool = False,
+    def __init__(self, tokenizer: str, max_seq_length: int, decoder_only: bool = False, padding="max_length",
                  pp_inputs_processor: Callable = None, **kwargs):
         self.tokenizer: PreTrainedTokenizer = AutoTokenizer.from_pretrained(tokenizer, **kwargs)
         expand_special_tokenizer(self.tokenizer)
         self.max_seq_length = max_seq_length
         self.decoder_only = decoder_only
+        self.padding = padding
         self.pp_inputs_processor = pp_inputs_processor
 
     def __call__(self, batch):
         texts = [b.pop("flan") for b in batch]
         texts += [b.pop("extra") for b in batch]
-        model_inputs = vanilla_seq2seq_convertor(texts, self.tokenizer, self.max_seq_length, self.decoder_only)
+        model_inputs = vanilla_seq2seq_convertor(texts, self.tokenizer, self.max_seq_length, self.decoder_only, self.padding)
 
         if self.pp_inputs_processor is not None:
             return self.pp_inputs_processor(model_inputs, self.tokenizer)

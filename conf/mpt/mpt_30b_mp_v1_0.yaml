@@ -1,0 +1,236 @@
+hydra:
+  run:
+    dir: ./
+
+train_file: data/files/wudao/partition_[0-6]00.json
+test_file:
+dist_load_data_barrier: False
+
+aws_output_bucket:
+
+flash_attn_cfg:
+  _target_: general_util.training_utils.cfg2dict
+  cfg:
+    alibi: true
+    alibi_bias_max: 8
+    attn_impl: "triton"
+    attn_pdrop: 0
+    attn_type: "multihead_attention"
+    attn_uses_sequence_id: false
+    clip_qkv:
+    prefix_lm: false
+    qk_ln: false
+    softmax_scale:
+
+# Model
+model:
+  _target_: models.mpt.configuration_mpt.MPTConfig.from_pretrained
+
+#enable_flash_attention: True
+
+get_layers:
+  _target_: models.mpt_ds_mp_wrap.get_layers_from_config
+  activation_checkpointing: True
+
+# Pipeline parallelism specific
+num_stages: 8
+#activation_checkpoint_interval: 1
+
+read_tensor_train:
+  _target_: data.collators.zh_instruct.TextDatasetUnifyV3
+  pair_file_list: data/files/c4/en/partition_*.json
+
+
+extended_vocab:
+
+# Data collator
+collator:
+  _target_: data.collators.flan.CombineCollator
+  max_seq_length: 2048
+  tokenizer: ${model_name_or_path}
+  decoder_only: True
+  pp_inputs_processor:
+    _target_: data.mp_inputs_process.MPTPpInputsProcess
+    config:
+      _target_: models.mpt.configuration_mpt.MPTConfig.from_pretrained
+      pretrained_model_name_or_path: ${model_name_or_path}
+#      attn_config: ${flash_attn_cfg}
+
+# Dataloader
+num_workers: 4
+prefetch_factor: 2
+
+do_preprocess: False
+
+#model_name_or_path: pretrained-models/LLaMA/llama-7b
+#model_name_or_path: pretrained-models/LLaMA/llama-30b-pp-w8
+model_name_or_path: /tmp/mpt-30b-mp8
+pretrain:
+
+exp_name: mpt_30b_mp_zh_v1_0.pp8.dp2.0711.aws
+exp_notes:
+output_dir: /tmp/${exp_name}  # Fix <pad token id>
+
+do_train: True
+evaluate_during_training: False
+
+do_eval: False
+eval_sub_path: checkpoint-*
+
+# Training hyper-parameters
+per_gpu_train_batch_size: 4
+per_gpu_eval_batch_size: 1
+# learning_rate: 2e-7
+learning_rate: 6e-7
+gradient_accumulation_steps: 256
+# weight_decay: 0.1
+weight_decay: 0.01
+adam_epsilon: 1e-6
+adam_betas: "(0.9, 0.99)"
+# adam_betas: "(0.9, 0.95, 0.9999)"
+max_grad_norm: 1.0
+num_train_epochs: 1
+max_steps: -1
+warmup_proportion: 0.01
+warmup_steps: 0
+total_dataset_len: 73682834
+
+# Optimizer
+optimizer:
+use_nvlamb:
+bit_training:
+
+
+logging_steps: 1
+save_best: False
+save_steps: 250
+eval_steps: -1
+ddp_eval: True
+no_cuda: False
+seed: 42
+local_rank: -1
+fp16: True
+fp16_opt_level: O1
+fp16_bfloat16: True
+
+# Prediction config
+prediction_cfg:
+  metric: "acc"
+  measure: 1
+  best_checkpoint:
+  best_result:
+eval_forward_fn:
+  _target_: general_util.evaluator.DiscriminatorForwardFn
+post_process:
+
+#dist_init:
+#  _target_: general_util.dist_utils.setup_slurm_distributed
+
+# torch compile
+compile: False
+
+# fairscale.FullyShardedDP
+fairscale_config:
+fsdp_config:
+#  #  _target_: general_util.fsdp_utils.recursive_initialize
+##  _target_: general_util.fsdp_utils.default_initialize
+#  #  _target_: general_util.fsdp_utils.default_initialize_v2
+##  _target_: general_util.torch_fsdp_utils.torch_fsdp_transformer_init
+#  _target_: general_util.torch_fsdp_utils.torch_fsdp_peft_auto_wrap
+#  fp16: ${fp16}
+#  #  move_grads_to_cpu: False
+#  #  move_params_to_cpu: False
+#  #  flatten_parameters: False
+#  fp16_bfloat16: ${fp16_bfloat16}
+##  disable_reshard_on_root: False
+
+
+# Deepspeed config
+ds_cfg:
+  train_micro_batch_size_per_gpu: ${per_gpu_train_batch_size}
+  gradient_accumulation_steps: ${gradient_accumulation_steps}
+  # zero_allow_untested_optimizer: True
+  optimizer:
+    type: AdamW
+    params:
+      lr: ${learning_rate}
+      betas: [ 0.9, 0.95 ]
+      eps: ${adam_epsilon}
+      weight_decay: ${weight_decay}
+  scheduler:
+    type: WarmupDecayLR
+    params:
+      total_num_steps:
+      warmup_max_lr: ${learning_rate}
+      warmup_num_steps:
+      warmup_type: linear
+  gradient_clipping: ${max_grad_norm}
+  fp16:
+    enabled: true
+    loss_scale: 0
+    loss_scale_window: 1000
+    initial_scale_power: 12
+    hysteresis: 2
+    min_loss_scale: 1
+  #  bf16:
+  #    enabled: ${fp16}
+  #  data_types:
+  #    grad_accum_dtype: "fp32"
+  #  gradient_accumulation_dtype:
+  #    dtype: "fp32"
+  #    sharded: True|False
+  #  autotuning:
+  #    enabled: true
+  #    arg_mappings:
+  #      train_micro_batch_size_per_gpu: "per_gpu_train_batch_size"
+  #      gradient_accumulation_steps: "gradient_accumulation_steps"
+  #      zero_optimization: "ds_cfg.zero_optimization"
+  zero_optimization:
+    stage: 1 # https://github.com/microsoft/DeepSpeed/issues/1835#issuecomment-1175836585
+    contiguous_gradients: True
+    overlap_comm: True
+    reduce_scatter: True
+    reduce_bucket_size: 5e8
+    allgather_partitions: True
+    allgather_bucket_size: 5e8
+    offload_optimizer:
+      device: cpu
+      pin_memory: True
+  #    offload_param:
+  #      device: cpu
+  #      pin_memory: True
+  #  activation_checkpointing:
+  #    partition_activations: True
+  #    cpu_checkpointing: True
+  #    contiguous_memory_optimization: False
+  #    number_checkpoints: False
+  #    synchronize_checkpoint_boundary: False
+  #    profile: False
+  steps_per_print: 1
+
+# Lightseq config
+with_lightseq: False
+
+
+summary_helper:
+  #  _target_: general_util.tensorboard_helper.SummaryWriterHelper
+  _target_: general_util.tensorboard_helper.WandbWriter
+  batch_index_or_keys:
+  #    "train/pair_value_num": pair_value_num
+  #    "train/pair_label_num": pair_label_num
+  #    "train/dropped_op_cnt": dropped_op_cnt
+  #    "train/invalid_path": invalid_path
+  outputs_index_or_keys:
+#    "train/mlm_loss": mlm_loss
+#    "train/cls_loss": cls_loss
+#    "train/cls_acc": cls_acc
+#    "train/tagging_loss": tagging_loss
+#    "train/path_gen_loss": path_gen_loss
+
+# Temporary variables
+n_gpu:
+device:
+train_batch_size:
+eval_batch_size:
+world_size:
+topology:
