@@ -280,11 +280,7 @@ PandaCommunity是大模型中文社区的先锋组织。我们致力于为中文
 
 加入飞书知识库(正在构建中)，一起共建社区文档。
 
-加入🐼微信群讨论
-
-<p align="center" width="100%">
-<img src="wechat.jpeg" alt="Wechat" style="width: 100%; display: block; margin: auto;">
-</p>
+加入🐼微信群讨论（即将开放）
 
 ## 免责声明
 
