@@ -21,7 +21,7 @@
 [![Data License](https://img.shields.io/badge/Data%20License-CC%20By%20NC%204.0-red.svg)](https://github.com/tatsu-lab/stanford_alpaca/blob/main/DATA_LICENSE)
 </br></br>
 ## 📄 项目介绍
-欢迎来到我们的海外中文大语言模型开源项目 -- Panda！Panda项目于2023年5月启动，旨在大模型时代帮助整个社区探索大模型的整个技术栈。近期，我们对Panda项目进行了升级。目前Panda项目分为三个子项目：1. PandaLLM 2. PandaLLMOPs 3. PandaCommunity。以下是每个子项目的具体介绍：
+欢迎来到我们的海外中文大语言模型开源项目 -- Panda！Panda项目于2023年5月启动，旨在大模型时代帮助整个社区探索大模型的整个技术栈。近期，我们对Panda项目进行了升级。目前Panda项目分为三个子项目：1. PandaLLM 2. PandaLLMOps 3. PandaCommunity。以下是每个子项目的具体介绍：
 
 1. PandaLLM 开源大模型。Panda系列开源大模型目前基于 LLaMA1 和 LLaMA2 进行中文领域上的持续预训练，我们希望能够为中文自然语言处理领域提供具有泛用性的通用基础工具进行探索。PandaLLM 模型以及训练涉及的中文数据集将以开源形式发布，任何人都可以免费使用并参与开发。
 
