@@ -365,7 +365,14 @@ deepspeed --include localhost:xxx ds_inference.py -cp <config path> -cn <config 
 注：以上几种方法本质上是对模型计算的从新封装，并不影响其本身的用法（区别于VLLM），及你依然可以用原有的模型计算 language modeling loss 或者直接调用`generate`方法。
 
 ### PandaLLMOps部署示例
-Work in Progress
+
+如果您有直接下载或者自己训练的模型参数，可以直接对模型进行部署。
+
+```python run_chat.py --model_path ./pretrained_model/panda-13B --query "write a peom"```
+
+如果您需要用模型参数合并（例如LLaMA 1)，则可以按照以下步骤先进行参数合并，然后再部署模型。
+
+
 
 ### PandaLLMOps-Tutorial
 我们上线了PandaLLMOps第一版Tutorial，希望可以能够给广大使用者起到答疑解惑的作用。如果您有更多的疑问，可以提交Github Issues或者加入我们的PandaCommunity微信群。
