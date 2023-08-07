@@ -370,9 +370,7 @@ deepspeed --include localhost:xxx ds_inference.py -cp <config path> -cn <config 
 
 ```python run_chat.py --model_path ./pretrained_model/panda-13B --query "write a peom"```
 
-如果您需要用模型参数合并（例如LLaMA 1)，则可以按照以下步骤先进行参数合并，然后再部署模型。
-
-
+如果您需要用模型参数合并（例如LLaMA 1)，则可以按照我们以下 Tutorial 中《快速部署》所展示的方式去进行参数合并和部署。
 
 ### PandaLLMOps-Tutorial
 我们上线了PandaLLMOps第一版Tutorial，希望可以能够给广大使用者起到答疑解惑的作用。如果您有更多的疑问，可以提交Github Issues或者加入我们的PandaCommunity微信群。
