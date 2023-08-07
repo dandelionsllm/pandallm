@@ -47,7 +47,7 @@
   - [⏩ PandaLLMOps 流水线并行示例](#PandaLLMOps流水线并行示例)
   - [🫡 PandaLLMOps 部署示例](#PandaLLMOps部署示例)
   - [🚀 PandaLLMOps 中英双语Tutorial上线](#PandaLLMOps-Tutorial)
-- [🐼 PandaCommunity 大模型中文社区](#PandaCommunity大模型中文社区)
+- [🐼 PandaCommunity 大模型中文社区](#-PandaCommunity大模型中文社区)
   - [🔥 社区介绍](#社区介绍)
   - [🌍 为什么选择PandaCommunity中文社区？](#为什么选择PandaCommunity中文社区)
   - [🎉 社区活动](#社区活动)
@@ -442,6 +442,8 @@ PandaCommunity是大模型中文社区的先锋组织。我们致力于为中文
 ### LLM相关论文
 有关LLM相关的论文请参考以下Github Repo的总结：
 [https://github.com/Hannibal046/Awesome-LLM](https://github.com/Hannibal046/Awesome-LLM)
+有关多模态相关的论文请参考以下Github Repo的总结：
+[https://github.com/pliang279/awesome-multimodal-ml](https://github.com/pliang279/awesome-multimodal-ml)
 
 ## 🎉 致谢
 
