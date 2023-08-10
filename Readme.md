@@ -423,6 +423,7 @@ PandaCommunity是大模型中文社区的先锋组织。我们致力于为中文
 
 ## 📢 社区公告
 ### Panda项目最新进展
+- **2023/08/10**: PandaLLM-LLaMA2-13B-Chat-v1版本发布
 - **2023/08/03**: 基于PandaLLM-LLaMA2-13B的Chat版本开始训练
 - **2023/08/02**: 基于LLaMA2-13B进行中文数据全参数微调的PandaLLM-LLaMA2-13B训练完成
 - **2023/07/25**: 基于LLaMA2-13B进行中文数据全参数微调的PandaLLM-LLaMA2-13B词表扩充完成
