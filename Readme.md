@@ -77,7 +77,7 @@
 |  模型名称      | 模型大小 | 下载链接                                            |
 | --------------- | ---------- | -------------------------------------------------------- |
 | Panda-LLaMA2-13B | 13B      | [https://huggingface.co/qcw/llama2-panda-zh-13b](https://huggingface.co/qcw/llama2-panda-zh-13b) |
-| Panda-LLaMA2-13B-Chat | 13B      | [https://huggingface.co/chitanda/panda-7b-open-llama-preview-300pt](https://huggingface.co/chitanda/panda-7b-open-llama-preview-300pt) |
+| Panda-LLaMA2-13B-Chat | 13B      | [https://huggingface.co/chitanda/panda-llama2-13b-chat](https://huggingface.co/chitanda/panda-llama2-13b-chat) |
 | Panda-OpenLLaMA-7B | 7B      | [https://huggingface.co/chitanda/panda-7b-open-llama-preview-300pt](https://huggingface.co/chitanda/panda-7b-open-llama-preview-300pt) |
 
 不可商用（基于LLaMA1底座微调)
