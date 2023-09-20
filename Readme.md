@@ -63,6 +63,9 @@
 
 ## 🐼 PandaLLM
 
+### 最新Code-Panda-13B上线
+我们基于LLaMA2-13B的底座模型在大量python数据上进行了增量预训练。本研究旨在提高Panda模型对代码的理解能力。本次预训练我们使用了大量github的python数据，该模型展现出了较为强大的python代码生成能力。后续我们会以该模型为基础不断完善Panda模型对代码数据的理解，并探究代码生成与模型推理能力之间的关系。
+
 ### 最新PandaLLM-LLaMA2-13B上线
 我们最新基于LLaMA2-13B的底座模型在中文数据进行了增量预训练。这项研究是为了进一步提升我们的自然语言处理技术，以更好地适应不断变化的语言环境和应用需求。在这次的增量预训练中，我们选择了大量丰富多样的中文数据，包括文本、对话、新闻文章和社交媒体内容，以增强模型对中文语境的理解和表达能力。该底座模型的LLaMA2-13B架构在之前的研究中已经表现出良好的性能和可扩展性，因此我们选择该模型作为基础，通过增量预训练的方式来进一步优化其效果。
 
@@ -76,6 +79,7 @@
 
 |  模型名称      | 模型大小 | 下载链接                                            |
 | --------------- | ---------- | -------------------------------------------------------- |
+| Code-Panda-13B  | 13B  | [https://huggingface.co/Michael0025/code-panda-13b-python](https://huggingface.co/Michael0025/code-panda-13b-python) |
 | Panda-LLaMA2-13B | 13B      | [https://huggingface.co/qcw/llama2-panda-zh-13b](https://huggingface.co/qcw/llama2-panda-zh-13b) |
 | Panda-LLaMA2-13B-Chat | 13B      | [https://huggingface.co/chitanda/panda-llama2-13b-chat](https://huggingface.co/chitanda/panda-llama2-13b-chat) |
 | Panda-OpenLLaMA-7B | 7B      | [https://huggingface.co/chitanda/panda-7b-open-llama-preview-300pt](https://huggingface.co/chitanda/panda-7b-open-llama-preview-300pt) |
@@ -147,7 +151,11 @@ HYDRA_FULL_ERROR=1 deepspeed --include localhost:0,1,2,3,4,5,6,7 trainer_base_ds
 - [百科问答(baike2018qa)，150万个带问题类型的问答](https://github.com/brightmart/nlp_chinese_corpus)  
 - [社区问答json版(webtext2019zh)，410万个高质量社区问答，适合训练超大模型](https://github.com/brightmart/nlp_chinese_corpus)  
 - [翻译语料(translation2019zh)，520万个中英文句子对](https://github.com/brightmart/nlp_chinese_corpus)  
-- [Chinese Open Instruction Generalist (COIG)](https://huggingface.co/datasets/BAAI/COIG) 
+- [Chinese Open Instruction Generalist (COIG)](https://huggingface.co/datasets/BAAI/COIG)
+- [BELLE dataset](https://github.com/LianjiaTech/BELLE/tree/main)
+- [MOSS dataset](https://huggingface.co/datasets/fnlp/moss-003-sft-data)
+- [Wudao dataset](https://data.baai.ac.cn/details/WuDaoCorporaText)
+- 我们收集的20万个中英文高质量指令微调数据
 
 **Notes**
 1. 对于除维基百科和新闻语料外的其他语料，用 Conditional Generation 的方式优化，即 instruction 部分与输入部分不计算损失，只计算输出部分的损失。除 COIG 外的语料中的 instruction 为固定模板。
