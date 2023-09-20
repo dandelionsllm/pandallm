@@ -63,7 +63,7 @@
 
 ## 🐼 PandaLLM
 
-### 最新Code-Panda-13B上线
+### 最新Code-Panda-13B-Python上线
 我们基于LLaMA2-13B的底座模型在大量python数据上进行了增量预训练。本研究旨在提高Panda模型对代码的理解能力。本次预训练我们使用了大量github的python数据，该模型展现出了较为强大的python代码生成能力。后续我们会以该模型为基础不断完善Panda模型对代码数据的理解，并探究代码生成与模型推理能力之间的关系。
 
 ### 最新PandaLLM-LLaMA2-13B上线
@@ -79,7 +79,7 @@
 
 |  模型名称      | 模型大小 | 下载链接                                            |
 | --------------- | ---------- | -------------------------------------------------------- |
-| Code-Panda-13B  | 13B  | [https://huggingface.co/Michael0025/code-panda-13b-python](https://huggingface.co/Michael0025/code-panda-13b-python) |
+| Code-Panda-13B-Python  | 13B  | [https://huggingface.co/Michael0025/code-panda-13b-python](https://huggingface.co/Michael0025/code-panda-13b-python) |
 | Panda-LLaMA2-13B | 13B      | [https://huggingface.co/qcw/llama2-panda-zh-13b](https://huggingface.co/qcw/llama2-panda-zh-13b) |
 | Panda-LLaMA2-13B-Chat | 13B      | [https://huggingface.co/chitanda/panda-llama2-13b-chat](https://huggingface.co/chitanda/panda-llama2-13b-chat) |
 | Panda-OpenLLaMA-7B | 7B      | [https://huggingface.co/chitanda/panda-7b-open-llama-preview-300pt](https://huggingface.co/chitanda/panda-7b-open-llama-preview-300pt) |
@@ -431,6 +431,7 @@ PandaCommunity是大模型中文社区的先锋组织。我们致力于为中文
 
 ## 📢 社区公告
 ### Panda项目最新进展
+- **2023/09/20**: Code-Panda-13B-Python-v1版本发布
 - **2023/08/10**: PandaLLM-LLaMA2-13B-Chat-v1版本发布
 - **2023/08/03**: 基于PandaLLM-LLaMA2-13B的Chat版本开始训练
 - **2023/08/02**: 基于LLaMA2-13B进行中文数据全参数微调的PandaLLM-LLaMA2-13B训练完成
