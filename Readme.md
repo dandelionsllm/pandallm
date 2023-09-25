@@ -79,6 +79,7 @@
 
 |  模型名称      | 模型大小 | 下载链接                                            |
 | --------------- | ---------- | -------------------------------------------------------- |
+| Legal-Panda-13B-Chat | 13B | [https://huggingface.co/chitanda/llama2.13b.sft.legal](https://huggingface.co/chitanda/llama2.13b.wudao.sft.combine.legal.v1.0.seq2k.w16.adamw.NA100.0921.ds) |
 | Code-Panda-13B-Python  | 13B  | [https://huggingface.co/Michael0025/code-panda-13b-python](https://huggingface.co/Michael0025/code-panda-13b-python) |
 | Panda-LLaMA2-13B | 13B      | [https://huggingface.co/qcw/llama2-panda-zh-13b](https://huggingface.co/qcw/llama2-panda-zh-13b) |
 | Panda-LLaMA2-13B-Chat | 13B      | [https://huggingface.co/chitanda/panda-llama2-13b-chat](https://huggingface.co/chitanda/panda-llama2-13b-chat) |
