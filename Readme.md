@@ -39,6 +39,9 @@
   - [🍞 PandaLLM 已发布的各版本模型权重](#pandallm已发布的各版本模型权重)
   - [🤖 PandaLLM 训练框架](#pandallmops训练框架)
   - [📒 PandaLLM 开源训练语料总结](#pandallm开源训练语料总结)
+- [🐼 PandaIndex](#-pandaindex)
+  - [🔥 最新 Panda-Index-Large 上线](#最新pandallm-index-large-en上线)
+  - [🍞 Panda-Index-Large 已发布的模型权重](#pandallm已发布的各版本模型权重)
 - [🐼 PandaLLMOps](#-pandallmops)
   - [🔨 PandaLLMOps 工具介绍](#pandallmops工具介绍)
   - [🤠 PandaLLMOps 预训练示例](#pandallmops预训练示例)
@@ -166,6 +169,74 @@ HYDRA_FULL_ERROR=1 deepspeed --include localhost:0,1,2,3,4,5,6,7 trainer_base_ds
 #### 英文 instruction-tuning
 
 为了提升模型的基础能力，我们选择使用 FLAN Collection 进行训练。由于 FLAN collection 语料规模过于庞大，我们按比例抽取了 7M 的语料用于训练，且最终性能仍远落后于 FLAN-T5-3B，因此目前我们决定暂时停止该方向的训练，并思考其他可能的构建较小的同时具有较强基础能力的语言模型的方向。
+
+
+## 🐼 Panda-Index
+
+### Panda-Index 模型介绍
+Panda-Index 是一系列辅助 Panda LLM 以及其他大语言模型进行检索增强训练、推断的文本向量模型. Panda-Index 为任意文本提供一个低维度的向量表示, 并通过向量相似度, 完成语义检索、文本分类、文本聚类等任务. 基于 Panda-Index, 您可以为本地知识库建立向量化数据库, 让任何大模型通过调用您的本地知识, 成为个性化的智能检索系统. Panda-Index 系列模型包含两个支持中英文本向量化的 `panda-index-large-en`, `panda-index-large-zh` (即将上线) 模型, 以及对应的 `panda-reranker-en`, `panda-reranker-zh` 模型 (即将上线). 我们的模型基于 Bert-large sentence-transformer 架构, 在 30 个中英文本数据集 (涵盖知识问答、自然语言推理、阅读理解、摘要、数据转文本、情感分析) 上进行训练, 致力于为用户支持广泛领域的文本检索和表示任务. 我们的模型在 [MTEB](https://huggingface.co/spaces/mteb/leaderboard) 的检索类任务上取得 top-3 的表现.
+
+
+### Panda-Index 模型权重下载
+| 模型名称                 | 模型大小   | 下载链接                                            |
+|----------------------|--------| -------------------------------------------------------- |
+| panda-index-large-en | 1.3 GB | https://huggingface.co/PandaLLMCommunity/panda-index-large-en |
+
+
+### MTEB 检索模型榜单
+
+|                                         Model Name                                         | Retrieval (15) |
+|:------------------------------------------------------------------------------------------:|:--------------:|
+|          [bge-large-en-v1.5](https://huggingface.co/BAAI/bge-large-en-v1.5)           |      54.2      |
+|                  [bge-large-en](https://huggingface.co/BAAI/bge-large-en)                  |      53.9      |
+| [**panda-index-large-en**]( https://huggingface.co/PandaLLMCommunity/panda-index-large-en) |   **53.35**    |
+|           [bge-base-en-v1.5](https://huggingface.co/BAAI/bge-base-en-v1.5)            |     53.25      |
+|                   [bge-base-en](https://huggingface.co/BAAI/bge-base-en)                   |      53.0      |
+|                   [gte-large](https://huggingface.co/thenlper/gte-large)                   |     52.22      |
+|          [bge-small-en-v1.5](https://huggingface.co/BAAI/bge-small-en-v1.5)           |     51.68      |
+|                    [gte-base](https://huggingface.co/thenlper/gte-base)                    |     51.14      |
+|                 [e5-large-v2](https://huggingface.co/intfloat/e5-large-v2)                 |     50.56      |
+|                  [bge-small-en](https://huggingface.co/BAAI/bge-small-en)                  |     51.82      |
+|                [instructor-xl](https://huggingface.co/hkunlp/instructor-xl)                |     49.26      |
+|                  [e5-base-v2](https://huggingface.co/intfloat/e5-base-v2)                  |     50.29      |
+|                   [gte-small](https://huggingface.co/thenlper/gte-small)                   |     49.46      |
+|        [text-embedding-ada-002](https://platform.openai.com/docs/guides/embeddings)        |     49.25      |
+|                 [e5-small-v2](https://huggingface.co/intfloat/e5-base-v2)                  |     49.04      |
+|      [sentence-t5-xxl](https://huggingface.co/sentence-transformers/sentence-t5-xxl)       |     42.24      |
+|    [all-mpnet-base-v2](https://huggingface.co/sentence-transformers/all-mpnet-base-v2)     |     43.81      |
+|     [sgpt-bloom-7b1-msmarco](https://huggingface.co/bigscience/sgpt-bloom-7b1-msmarco)     |     48.22      |
+|    [all-MiniLM-L12-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L12-v2)     |     42.69      |
+|     [all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2)      |     41.95      |
+|     [contriever-base-msmarco](https://huggingface.co/nthakur/contriever-base-msmarco)      |     41.88      |
+|     [sentence-t5-base](https://huggingface.co/sentence-transformers/sentence-t5-base)      |     33.63      |
+
+
+### 基于 Huggingface 部署 Panda-Index
+
+您可以基于 Huggingface transformer 模块快速部署 Panda-Index 模型.
+
+```python
+from transformers import AutoTokenizer, AutoModel
+import torch
+# Target sentences
+sentences = ["sentence 1", "sentence 2", "sentence 3", ...]
+
+# Load model from HuggingFace Hub
+tokenizer = AutoTokenizer.from_pretrained('PandaLLMCommunity/panda-index-large-en')
+model = AutoModel.from_pretrained('PandaLLMCommunity/panda-index-large-en')
+model.eval()
+
+# Tokenize sentences
+encoded_input = tokenizer(sentences, padding=True, truncation=True, return_tensors='pt')
+
+# Compute sentence embeddings
+with torch.no_grad():
+    model_output = model(**encoded_input)
+    embeddings = model_output[0][:, 0]
+
+# Normalization
+embeddings = torch.nn.functional.normalize(embeddings, p=2, dim=1)
+```
 
 
 ## 🐼 PandaLLMOPs
